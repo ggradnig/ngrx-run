@@ -13,12 +13,14 @@ import {BehaviorSubject, isObservable, Observable, queueScheduler, Subscription}
 import {observeOn, scan, withLatestFrom} from 'rxjs/operators';
 import {
   Cancellable,
+  CancellationToken,
   Effect,
   ObservableEffect,
   Operand,
   PromiseEffect,
   StateWithEffects,
   SubscriptionToken,
+  UnsubscribeOperation,
   UnsubscriptionEffect
 } from './functions';
 
@@ -37,6 +39,8 @@ export class State<T> extends BehaviorSubject<any> implements OnDestroy {
     injector: Injector
   ) {
     super(initialState);
+    // @ts-ignore
+    this.runtime.set(31415, undefined);
 
     const actionsOnQueue$: Observable<Action> = actions$.pipe(observeOn(queueScheduler));
     const withLatestReducer$: Observable<[Action, ActionReducer<any>]> = actionsOnQueue$.pipe(withLatestFrom(reducer$));
@@ -66,7 +70,7 @@ export const STATE_PROVIDERS: Provider[] = [State, {provide: StateObservable, us
 
 export type ReducerResult<T> = T | StateWithEffects<T, any>;
 
-export type ActionReducer<T, V extends Action = Action> = (state: T | undefined, action: V) => ReducerResult<T>;
+export type ActionReducer<T> = (state: T | undefined, action: any) => ReducerResult<T>;
 
 export type StateActionPair<T, V extends Action = Action> = {
   state: T | undefined;
@@ -80,7 +84,7 @@ export function reduceState<T, V extends Action = Action>(
   runtime: Runtime
 ): (
   stateActionPair: StateActionPair<T, V> | undefined,
-  [action, reducer]: [V, ActionReducer<T, V>]
+  [action, reducer]: [V, ActionReducer<T>]
 ) => StateActionPair<T, V> {
   return (stateActionPair, [action, reducer]) => {
     const {state} = stateActionPair ?? {state: undefined};
@@ -108,7 +112,7 @@ function isStateWithEffects(state: any): state is StateWithEffects<any, any> {
 }
 
 function handleStateWithEffect<E>(effect: Effect<E>, runtime: Runtime, store: Store): void {
-  const operand = typeof effect.operation === 'function' ? effect.operation() : effect.operation;
+  const operand = effect.operation();
   if (isObservableEffect(effect, operand)) {
     const token = (Math.max(...runtime.keys()) + 1) as SubscriptionToken;
     const subscription = (operand as Observable<E>).subscribe({
@@ -126,7 +130,7 @@ function handleStateWithEffect<E>(effect: Effect<E>, runtime: Runtime, store: St
       (err) => effect.reject && store.dispatch(effect.reject(err))
     );
   } else if (isUnsubscriptionEffect(effect, operand)) {
-    handleUnsubscribe(operand as SubscriptionToken, runtime);
+    handleUnsubscribe(operand as UnsubscribeOperation, effect, runtime, store);
   }
 }
 
@@ -139,18 +143,26 @@ function isPromiseEffect<E>(effect: Effect<E>, operand: Operand<E>): effect is P
 }
 
 function isUnsubscriptionEffect<E>(effect: Effect<E>, operand: Operand<E>): effect is UnsubscriptionEffect<E> {
-  return (operand as SubscriptionToken).__brand === 'SubscriptionToken';
+  return (operand as UnsubscribeOperation).__brand === 'Unsubscribe';
 }
 
-function handleUnsubscribe(subscriptionToken: SubscriptionToken, runtime: Runtime): void {
-  const cancellable = runtime.get(subscriptionToken);
+function handleUnsubscribe(
+  operation: UnsubscribeOperation,
+  effect: UnsubscriptionEffect<any>,
+  runtime: Runtime,
+  store: Store
+): void {
+  const cancellable = runtime.get(operation.subscriptionToken);
   if (cancellable instanceof Subscription) {
-    runtime.delete(subscriptionToken);
+    runtime.delete(operation.subscriptionToken);
     cancellable.unsubscribe();
   } else if (cancellable instanceof AbortController) {
-    runtime.delete(subscriptionToken);
+    runtime.delete(operation.subscriptionToken);
     cancellable.abort();
   } else {
-    console.warn(`SubscriptionToken ${subscriptionToken} not recognized. Did you cancel this already?`);
+    console.warn(`SubscriptionToken ${operation.subscriptionToken} not recognized. Did you cancel this already?`);
+  }
+  if (effect.unsubscribe) {
+    store.dispatch(effect.unsubscribe(0 as CancellationToken));
   }
 }

@@ -1,50 +1,39 @@
-import { Action, select, Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { TestBed } from '@angular/core/testing';
 import { RuntimeStoreModule } from '../lib/module';
-import { interval, Observable, timer } from 'rxjs';
+import { interval, Observable } from 'rxjs';
 import { first, take } from 'rxjs/operators';
 import { ReducerResult } from '../lib/state';
-import { SubscriptionToken, withEffects } from '../lib/functions';
-
-export const TRIGGER = 'TRIGGER';
-export const SUBSCRIBE = 'TRIGGER_INTERVAL';
-export const INCREMENT = 'INCREMENT';
-export const UNSUBSCRIBE = 'UNSUBSCRIBE';
-
-interface UnsubscribedState {
-  type: 'UnsubscribedState';
-  counter: number;
-}
-
-interface SubscribedState {
-  type: 'SubscribedState';
-  counter: number;
-  subscriptionToken: SubscriptionToken;
-}
-
-type State = UnsubscribedState | SubscribedState;
+import { SubscriptionToken, unsubscribe, withEffects } from '../lib/functions';
 
 export function reducer(
-  state: State = { counter: 0, type: 'UnsubscribedState' },
+  state: State = { counter: 0, type: States.unsubscribed },
   action: Action
 ): ReducerResult<State> {
   switch (action.type) {
-    case TRIGGER:
-      return withEffects(state, { operation: () => timer(1000), next: () => ({ type: INCREMENT }) });
-    case SUBSCRIBE:
-      return withEffects(state, { operation: () => interval(1000), next: () => ({ type: INCREMENT }) });
-    case UNSUBSCRIBE:
+    case Actions.subscribe:
+      return withEffects(state, {
+        operation: () => interval(1000),
+        next: () => new IncrementAction(),
+        subscribe: (token) => new SubscribedAction({ token })
+      });
+    case Actions.subscribed:
+      return { ...state, type: States.subscribed, subscriptionToken: action.payload.token };
+    case Actions.unsubscribe:
       switch (state.type) {
-        case 'SubscribedState':
-          return withEffects(state, { operation: state.subscriptionToken });
-        case 'UnsubscribedState':
+        case States.subscribed:
+          return withEffects(state, {
+            operation: () => unsubscribe(state.subscriptionToken),
+            unsubscribe: () => new UnsubscribedAction()
+          });
+        case States.unsubscribed:
           return state;
       }
       break;
-    case INCREMENT:
+    case Actions.unsubscribed:
+      return { counter: state.counter, type: States.unsubscribed };
+    case Actions.increment:
       return { ...state, counter: state.counter + 1 };
-    default:
-      return state;
   }
 }
 
@@ -75,24 +64,69 @@ describe('Store', () => {
         error: done,
         complete: done
       });
+    jest.runOnlyPendingTimers();
   }
-
-  it('should increase the counter value after one second', (done) => {
-    setup();
-    store.dispatch({ type: TRIGGER });
-    jest.advanceTimersByTime(1000);
-    testStoreValue({ counter: 1, type: 'UnsubscribedState' }, done);
-  });
 
   it('should increase the counter twice and then unsubscribe', (done) => {
     setup();
-    store.dispatch({ type: SUBSCRIBE });
+    store.dispatch(new SubscribeAction());
     jest.advanceTimersByTime(2000);
-    store.dispatch({ type: UNSUBSCRIBE });
-    testStoreValue({ counter: 2, type: 'UnsubscribedState' }, done);
+    store.dispatch(new UnsubscribeAction());
+    jest.advanceTimersByTime(1000);
+    testStoreValue({ counter: 2, type: States.unsubscribed }, done);
   });
 });
 
 export function firstValueFrom<T>(obs$: Observable<T>): Promise<T> {
   return obs$.pipe(first()).toPromise();
 }
+
+enum Actions {
+  subscribe = 'Subscribe',
+  subscribed = 'Subscribed',
+  increment = 'Increment',
+  unsubscribe = 'Unsubscribe',
+  unsubscribed = 'Unsubscribed'
+}
+
+class SubscribeAction {
+  readonly type = Actions.subscribe;
+}
+
+class SubscribedAction {
+  readonly type = Actions.subscribed;
+
+  constructor(public payload: { token: SubscriptionToken }) {}
+}
+
+class IncrementAction {
+  readonly type = Actions.increment;
+}
+
+class UnsubscribeAction {
+  readonly type = Actions.unsubscribe;
+}
+
+class UnsubscribedAction {
+  readonly type = Actions.unsubscribed;
+}
+
+type Action = SubscribeAction | SubscribedAction | IncrementAction | UnsubscribeAction | UnsubscribedAction;
+
+enum States {
+  unsubscribed = 'Unsubscribed',
+  subscribed = 'Subscribed'
+}
+
+interface UnsubscribedState {
+  type: States.unsubscribed;
+  counter: number;
+}
+
+interface SubscribedState {
+  type: States.subscribed;
+  counter: number;
+  subscriptionToken: SubscriptionToken;
+}
+
+type State = UnsubscribedState | SubscribedState;

@@ -16,7 +16,7 @@ import {ActionReducer, STATE_PROVIDERS} from './state';
  */
 export interface FeatureSlice<T, V extends Action = Action> {
   name: string;
-  reducer: ActionReducer<T, V>;
+  reducer: ActionReducer<T>;
 }
 
 @NgModule({})
@@ -50,7 +50,7 @@ export class RuntimeStoreModule {
   static forFeature<T, V extends Action = Action>(
     featureName: string,
     // tslint:disable-next-line:unified-signatures
-    reducer: ActionReducer<T, V> | InjectionToken<ActionReducer<T, V>>,
+    reducer: ActionReducer<T> | InjectionToken<ActionReducer<T>>,
     config?: StoreConfig<T, V> | InjectionToken<StoreConfig<T, V>>
   ): ModuleWithProviders<StoreFeatureModule>;
   static forFeature<T, V extends Action = Action>(
@@ -62,8 +62,8 @@ export class RuntimeStoreModule {
     reducersOrConfig?:
       | ActionReducerMap<any, any>
       | InjectionToken<ActionReducerMap<any, any>>
-      | ActionReducer<any, any>
-      | InjectionToken<ActionReducer<any, any>>
+      | ActionReducer<any>
+      | InjectionToken<ActionReducer<any>>
       | StoreConfig<any, any>
       | InjectionToken<StoreConfig<any, any>>,
     config: StoreConfig<any, any> | InjectionToken<StoreConfig<any, any>> = {}
@@ -78,5 +78,5 @@ function isClassProvider(provider: any): provider is ClassProvider {
 }
 
 export declare type ActionReducerMap<T, V extends Action = Action> = {
-  [p in keyof T]: ActionReducer<T[p], V>;
+  [p in keyof T]: ActionReducer<T[p]>;
 };

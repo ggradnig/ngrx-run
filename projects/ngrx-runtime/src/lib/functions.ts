@@ -16,17 +16,17 @@ export type PromiseEffect<T> = {
 };
 
 export type UnsubscriptionEffect<T> = {
-  operation: SubscriptionToken;
+  operation: () => UnsubscribeOperation;
   unsubscribe?: (token: CancellationToken) => Action;
 };
 
-export type Operand<T> = Observable<T> | Promise<T> | SubscriptionToken;
+export type Operand<T> = Observable<T> | Promise<T> | UnsubscribeOperation;
 
 export type Effect<T> = ObservableEffect<T> | PromiseEffect<T> | UnsubscriptionEffect<T>;
 
-const brand = 'StateWithEffects';
+export const stateWithEffectsBrand = 'StateWithEffects';
 export type StateWithEffects<S, E> = {
-  __brand: typeof brand;
+  __brand: typeof stateWithEffectsBrand;
   state: S;
   effects: Effect<E>[];
 };
@@ -38,8 +38,22 @@ export type Cancellable<T> = Subscription | AbortController;
 
 export function withEffects<S, E>(state: S, ...effects: Effect<E>[]): StateWithEffects<S, E> {
   return {
-    __brand: brand,
+    __brand: stateWithEffectsBrand,
     state,
     effects
+  };
+}
+
+export const unsubscribeBrand = 'Unsubscribe';
+
+export type UnsubscribeOperation = {
+  __brand: typeof unsubscribeBrand;
+  subscriptionToken: SubscriptionToken;
+};
+
+export function unsubscribe(subscriptionToken: SubscriptionToken): UnsubscribeOperation {
+  return {
+    __brand: unsubscribeBrand,
+    subscriptionToken
   };
 }
