@@ -12,25 +12,13 @@
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
-            "tsConfig": "projects/ngrx-runtime/tsconfig.lib.json",
-            "project": "projects/ngrx-runtime/ng-package.json"
+            "tsConfig": "./tsconfig.lib.json",
+            "project": "./build/ng-package.json"
           },
           "configurations": {
             "production": {
-              "tsConfig": "projects/ngrx-runtime/tsconfig.lib.prod.json"
+              "tsConfig": "./tsconfig.lib.prod.json"
             }
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "projects/ngrx-runtime/tsconfig.lib.json",
-              "projects/ngrx-runtime/tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
           }
         }
       }
