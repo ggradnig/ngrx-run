@@ -1,8 +1,8 @@
-import { Store } from '@ngrx/store';
+import { Store, StoreModule } from '@ngrx/store';
 import { TestBed } from '@angular/core/testing';
 import { RuntimeStoreModule } from '../lib/module';
 import { reducer, State, States, SubscribeAction, UnsubscribeAction } from './counter';
-import { testStoreValue } from './util';
+import {testStoreValue} from './util';
 
 jest.useFakeTimers();
 describe('Store', () => {
@@ -10,7 +10,7 @@ describe('Store', () => {
 
   function setup(): void {
     TestBed.configureTestingModule({
-      imports: [RuntimeStoreModule.forRoot({ feature: reducer })]
+      imports: [RuntimeStoreModule.forRoot({}), StoreModule.forFeature('feature', reducer)]
     });
     store = TestBed.inject(Store);
   }

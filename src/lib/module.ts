@@ -69,7 +69,14 @@ export class RuntimeStoreModule {
     config: StoreConfig<any, any> | InjectionToken<StoreConfig<any, any>> = {}
   ): ModuleWithProviders<StoreFeatureModule> {
     // @ts-ignore
-    return StoreModule.forFeature(featureNameOrSlice, reducersOrConfig, config);
+    const store = StoreModule.forFeature(featureNameOrSlice, reducersOrConfig, config);
+    store.providers = [
+      ...(store.providers as Provider[]).filter(
+        (provider) => !isClassProvider(provider) || (provider.provide !== StateObservable && provider.provide !== State)
+      ),
+      ...STATE_PROVIDERS
+    ];
+    return store;
   }
 }
 

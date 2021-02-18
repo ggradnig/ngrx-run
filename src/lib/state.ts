@@ -1,14 +1,5 @@
 import {Inject, Injectable, Injector, OnDestroy, Provider} from '@angular/core';
-import {
-  Action,
-  ActionsSubject,
-  INIT,
-  INITIAL_STATE,
-  ReducerObservable,
-  ScannedActionsSubject,
-  StateObservable,
-  Store
-} from '@ngrx/store';
+import {Action, ActionsSubject, INIT, INITIAL_STATE, ReducerObservable, ScannedActionsSubject, StateObservable, Store} from '@ngrx/store';
 import {BehaviorSubject, isObservable, Observable, queueScheduler, Subscription} from 'rxjs';
 import {observeOn, scan, withLatestFrom} from 'rxjs/operators';
 import {
@@ -99,7 +90,7 @@ export function reduceState<T, V extends Action = Action>(
 
   function handleSliceEffects<S>(slicedState: ReducerResult<S>): S {
     if (isStateWithEffects(slicedState)) {
-      slicedState.effects.forEach((effect) => handleStateWithEffect(effect, runtime, injector.get(Store)));
+      slicedState.effects.forEach((effect) => handleStateWithEffect(effect, runtime, injector.get(Store), injector));
       return slicedState.state;
     } else {
       return slicedState;
@@ -111,10 +102,11 @@ function isStateWithEffects(state: any): state is StateWithEffects<any, any> {
   return state.__brand === 'StateWithEffects';
 }
 
-function handleStateWithEffect<E>(effect: Effect<E>, runtime: Runtime, store: Store): void {
-  const operand = effect.operation();
+function handleStateWithEffect<E>(effect: Effect<E>, runtime: Runtime, store: Store, injector: Injector): void {
+  const operand = effect.operation(injector.get.bind(injector));
   if (isObservableEffect(effect, operand)) {
     const token = (Math.max(...runtime.keys()) + 1) as SubscriptionToken;
+
     const subscription = (operand as Observable<E>).subscribe({
       next: (value) => store.dispatch(effect.next(value)),
       error: (err) => effect.error && store.dispatch(effect.error(err)),

@@ -1,8 +1,11 @@
-import { Observable, Subscription } from 'rxjs';
-import { Action } from '@ngrx/store';
+import {Observable, Subscription} from 'rxjs';
+import {Action} from '@ngrx/store';
+import {inject as angularInject, InjectionToken, Type} from '@angular/core';
+
+type Inject<T> = (token: Type<T> | InjectionToken<T>) => T;
 
 export type ObservableEffect<T> = {
-  operation: () => Observable<T>;
+  operation: (inject: Inject<any>) => Observable<T>;
   next: (value: T) => Action;
   error?: (err: any) => Action;
   complete?: () => Action;
@@ -10,13 +13,13 @@ export type ObservableEffect<T> = {
 };
 
 export type PromiseEffect<T> = {
-  operation: () => Promise<T>;
+  operation: (inject: Inject<any>) => Promise<T>;
   resolve: (value: T) => Action;
   reject?: (err: any) => Action;
 };
 
 export type UnsubscriptionEffect<T> = {
-  operation: () => UnsubscribeOperation;
+  operation: (inject: Inject<any>) => UnsubscribeOperation;
   unsubscribe?: (token: CancellationToken) => Action;
 };
 
