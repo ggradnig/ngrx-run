@@ -1,7 +1,5 @@
-import {Inject, Injectable, Injector, OnDestroy, Provider} from '@angular/core';
-import {Action, ActionsSubject, INIT, INITIAL_STATE, ReducerObservable, ScannedActionsSubject, StateObservable, Store} from '@ngrx/store';
-import {BehaviorSubject, isObservable, Observable, queueScheduler, Subscription} from 'rxjs';
-import {observeOn, scan, withLatestFrom} from 'rxjs/operators';
+import { Injector } from '@angular/core';
+import { Store } from '@ngrx/store';
 import {
   Cancellable,
   CancellationToken,
@@ -14,84 +12,26 @@ import {
   UnsubscribeOperation,
   UnsubscriptionEffect
 } from './functions';
+import { isObservable, Observable, Subscription } from 'rxjs';
+import {ReducerResult} from './types';
 
-@Injectable()
-export class State<T> extends BehaviorSubject<any> implements OnDestroy {
-  static readonly INIT = INIT;
+export type Runtime = Map<SubscriptionToken, Cancellable<any>>;
 
-  private stateSubscription: Subscription;
-  private runtime = new Map<SubscriptionToken, Cancellable<any>>();
-
-  constructor(
-    actions$: ActionsSubject,
-    reducer$: ReducerObservable,
-    scannedActions: ScannedActionsSubject,
-    @Inject(INITIAL_STATE) initialState: any,
-    injector: Injector
-  ) {
-    super(initialState);
-    // @ts-ignore
-    this.runtime.set(31415, undefined);
-
-    const actionsOnQueue$: Observable<Action> = actions$.pipe(observeOn(queueScheduler));
-    const withLatestReducer$: Observable<[Action, ActionReducer<any>]> = actionsOnQueue$.pipe(withLatestFrom(reducer$));
-
-    const seed: StateActionPair<T> = {state: initialState};
-    const stateAndAction$: Observable<{
-      state: any;
-      action?: Action;
-    }> = withLatestReducer$.pipe(
-      scan<[Action, ActionReducer<T>], StateActionPair<T>>(reduceState(injector, this.runtime), seed)
-    );
-
-    this.stateSubscription = stateAndAction$.subscribe(({state, action}) => {
-      this.next(state);
-      // tslint:disable-next-line:no-non-null-assertion
-      scannedActions.next(action!);
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.stateSubscription.unsubscribe();
-    this.complete();
-  }
-}
-
-export const STATE_PROVIDERS: Provider[] = [State, {provide: StateObservable, useExisting: State}];
-
-export type ReducerResult<T> = T | StateWithEffects<T, any>;
-
-export type ActionReducer<T> = (state: T | undefined, action: any) => ReducerResult<T>;
-
-export type StateActionPair<T, V extends Action = Action> = {
-  state: T | undefined;
-  action?: V;
-};
-
-type Runtime = Map<SubscriptionToken, Cancellable<any>>;
-
-export function reduceState<T, V extends Action = Action>(
-  injector: Injector,
-  runtime: Runtime
-): (
-  stateActionPair: StateActionPair<T, V> | undefined,
-  [action, reducer]: [V, ActionReducer<T>]
-) => StateActionPair<T, V> {
-  return (stateActionPair, [action, reducer]) => {
-    const {state} = stateActionPair ?? {state: undefined};
-    const reduced = reducer(state, action);
+export function handleEffects<T>(injector: Injector, runtime: Runtime): (reduced: ReducerResult<T>) => T {
+  return (reduced) => {
     let newState: T = handleSliceEffects(reduced);
     // tslint:disable-next-line:forin
     for (const key in newState) {
-      newState = {...newState, [key]: handleSliceEffects(newState[key])};
+      newState = { ...newState, [key]: handleSliceEffects(newState[key]) };
     }
-    return {state: newState, action};
+    return newState;
   };
 
   function handleSliceEffects<S>(slicedState: ReducerResult<S>): S {
     if (isStateWithEffects(slicedState)) {
+      // @ts-ignore
       slicedState.effects.forEach((effect) => handleStateWithEffect(effect, runtime, injector.get(Store), injector));
-      return slicedState.state;
+      return { ...slicedState.state, __effects__: slicedState };
     } else {
       return slicedState;
     }
@@ -99,7 +39,7 @@ export function reduceState<T, V extends Action = Action>(
 }
 
 function isStateWithEffects(state: any): state is StateWithEffects<any, any> {
-  return state.__brand === 'StateWithEffects';
+  return state?.__brand === 'StateWithEffects';
 }
 
 function handleStateWithEffect<E>(effect: Effect<E>, runtime: Runtime, store: Store, injector: Injector): void {

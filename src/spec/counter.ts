@@ -1,14 +1,11 @@
 /* Reducer */
 
-import { ReducerResult } from '../lib/state';
-import { SubscriptionToken, unsubscribe, withEffects } from '../lib/functions';
-import { interval, Observable } from 'rxjs';
-import { TestBed } from '@angular/core/testing';
-import { select, Store } from '@ngrx/store';
-import { first, take } from 'rxjs/operators';
+import {ReducerResult} from '../lib/state';
+import {SubscriptionToken, unsubscribe, withEffects} from '../lib/functions';
+import {interval} from 'rxjs';
 
 export function reducer(
-  state: State = { counter: 0, type: States.unsubscribed },
+  state: State = {counter: 0, type: States.unsubscribed},
   action: Action
 ): ReducerResult<State> {
   switch (action.type) {
@@ -16,10 +13,10 @@ export function reducer(
       return withEffects(state, {
         operation: () => interval(1000),
         next: () => new IncrementAction(),
-        subscribe: (token) => new SubscribedAction({ token })
+        subscribe: (token) => new SubscribedAction({token})
       });
     case Actions.subscribed:
-      return { ...state, type: States.subscribed, subscriptionToken: action.payload.token };
+      return {...state, type: States.subscribed, subscriptionToken: action.payload.token};
     case Actions.unsubscribe:
       switch (state.type) {
         case States.subscribed:
@@ -32,12 +29,11 @@ export function reducer(
       }
       break;
     case Actions.unsubscribed:
-      return { counter: state.counter, type: States.unsubscribed };
+      return {counter: state.counter, type: States.unsubscribed};
     case Actions.increment:
-      return { ...state, counter: state.counter + 1 };
+      return {...state, counter: state.counter + 1};
   }
 }
-
 
 export enum Actions {
   subscribe = 'Subscribe',
@@ -54,7 +50,8 @@ export class SubscribeAction {
 export class SubscribedAction {
   readonly type = Actions.subscribed;
 
-  constructor(public payload: { token: SubscriptionToken }) {}
+  constructor(public payload: { token: SubscriptionToken }) {
+  }
 }
 
 export class IncrementAction {
