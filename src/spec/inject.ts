@@ -1,9 +1,9 @@
 /* Reducer */
 
-import { ReducerResult } from '../lib/state';
 import { withEffects } from '../lib/functions';
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
+import { StateWithEffects } from '../public-api';
 
 @Injectable({ providedIn: 'root' })
 class TestService {
@@ -12,7 +12,7 @@ class TestService {
   }
 }
 
-export function reducer(state: 'before' | 'after' = 'before', action: Action): ReducerResult<'before' | 'after'> {
+export function reducer(state: 'before' | 'after' = 'before', action: Action): StateWithEffects<'before' | 'after'> {
   switch (action.type) {
     case Actions.init:
       return withEffects(state, {

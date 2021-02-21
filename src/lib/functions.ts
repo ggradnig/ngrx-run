@@ -1,8 +1,12 @@
-import {Observable, Subscription} from 'rxjs';
-import {Action} from '@ngrx/store';
-import {inject as angularInject, InjectionToken, Type} from '@angular/core';
+import { Observable, Subscription } from 'rxjs';
+import { Action } from '@ngrx/store';
+import { InjectionToken, Type } from '@angular/core';
 
 type Inject<T> = (token: Type<T> | InjectionToken<T>) => T;
+
+type EffectDescription = {
+  name: string;
+};
 
 export type ObservableEffect<T> = {
   operation: (inject: Inject<any>) => Observable<T>;
@@ -25,7 +29,7 @@ export type UnsubscriptionEffect<T> = {
 
 export type Operand<T> = Observable<T> | Promise<T> | UnsubscribeOperation;
 
-export type Effect<T> = ObservableEffect<T> | PromiseEffect<T> | UnsubscriptionEffect<T>;
+export type Effect<T> = (ObservableEffect<T> | PromiseEffect<T> | UnsubscriptionEffect<T>) & Partial<EffectDescription>;
 
 export const stateWithEffectsBrand = 'StateWithEffects';
 export type StateWithEffects<S, E> = {

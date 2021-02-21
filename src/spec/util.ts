@@ -23,3 +23,11 @@ export function testStoreValue(expected: any, done: () => void): void {
       complete: done
     });
 }
+
+export async function testStoreValueAsync<T>(expected: any, selector?: (state: any) => any): Promise<void> {
+  const store = TestBed.inject(Store);
+  const value = await firstValueFrom(store.pipe(select((state) => state.feature))).then(null, (err) =>
+    console.error(err)
+  );
+  expect(selector ? selector(value) : value).toEqual(expected);
+}

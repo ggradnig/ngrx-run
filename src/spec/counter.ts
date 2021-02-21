@@ -1,18 +1,21 @@
 /* Reducer */
 
-import {ReducerResult} from '../lib/state';
 import {SubscriptionToken, unsubscribe, withEffects} from '../lib/functions';
 import {interval} from 'rxjs';
+import {StateWithEffects} from '../public-api';
+import {mapTo} from 'rxjs/operators';
 
 export function reducer(
   state: State = {counter: 0, type: States.unsubscribed},
   action: Action
-): ReducerResult<State> {
+): StateWithEffects<State> {
   switch (action.type) {
     case Actions.subscribe:
       return withEffects(state, {
-        operation: () => interval(1000),
-        next: () => new IncrementAction(),
+        name: 'Interval',
+        // Note: we need this object to test effect description for complex objects
+        operation: () => interval(1000).pipe(mapTo({a: {b: {c: 1}}})),
+        next: (val: { a: { b: { c: number } } }) => new IncrementAction(val.a.b.c),
         subscribe: (token) => new SubscribedAction({token})
       });
     case Actions.subscribed:
@@ -56,6 +59,9 @@ export class SubscribedAction {
 
 export class IncrementAction {
   readonly type = Actions.increment;
+
+  constructor(by: number = 1) {
+  }
 }
 
 export class UnsubscribeAction {

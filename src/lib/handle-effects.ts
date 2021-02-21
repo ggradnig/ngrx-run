@@ -13,7 +13,9 @@ import {
   UnsubscriptionEffect
 } from './functions';
 import { isObservable, Observable, Subscription } from 'rxjs';
-import {ReducerResult} from './types';
+import { ReducerResult } from './types';
+import {addEffectDescriptions} from './effect-description';
+import {isObservableEffect, isPromiseEffect, isUnsubscriptionEffect} from './effect-type';
 
 export type Runtime = Map<SubscriptionToken, Cancellable<any>>;
 
@@ -31,12 +33,13 @@ export function handleEffects<T>(injector: Injector, runtime: Runtime): (reduced
     if (isStateWithEffects(slicedState)) {
       // @ts-ignore
       slicedState.effects.forEach((effect) => handleStateWithEffect(effect, runtime, injector.get(Store), injector));
-      return { ...slicedState.state, __effects__: slicedState };
+      return addEffectDescriptions(slicedState.state, slicedState.effects);
     } else {
       return slicedState;
     }
   }
 }
+
 
 function isStateWithEffects(state: any): state is StateWithEffects<any, any> {
   return state?.__brand === 'StateWithEffects';
@@ -64,18 +67,6 @@ function handleStateWithEffect<E>(effect: Effect<E>, runtime: Runtime, store: St
   } else if (isUnsubscriptionEffect(effect, operand)) {
     handleUnsubscribe(operand as UnsubscribeOperation, effect, runtime, store);
   }
-}
-
-function isObservableEffect<E>(effect: Effect<E>, operand: Operand<E>): effect is ObservableEffect<E> {
-  return isObservable(operand);
-}
-
-function isPromiseEffect<E>(effect: Effect<E>, operand: Operand<E>): effect is PromiseEffect<E> {
-  return operand instanceof Promise;
-}
-
-function isUnsubscriptionEffect<E>(effect: Effect<E>, operand: Operand<E>): effect is UnsubscriptionEffect<E> {
-  return (operand as UnsubscribeOperation).__brand === 'Unsubscribe';
 }
 
 function handleUnsubscribe(
