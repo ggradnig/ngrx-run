@@ -1,6 +1,6 @@
 {
   "name": "ngrx-runtime",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "peerDependencies": {
     "@angular/common": ">10.0.0",
     "@angular/core": ">10.0.0",

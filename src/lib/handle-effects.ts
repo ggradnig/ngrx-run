@@ -3,19 +3,16 @@ import { Store } from '@ngrx/store';
 import {
   Cancellable,
   CancellationToken,
-  Effect,
-  ObservableEffect,
-  Operand,
-  PromiseEffect,
+  EffectConfig,
   StateWithEffects,
   SubscriptionToken,
   UnsubscribeOperation,
   UnsubscriptionEffect
 } from './functions';
-import { isObservable, Observable, Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { ReducerResult } from './types';
-import {addEffectDescriptions} from './effect-description';
-import {isObservableEffect, isPromiseEffect, isUnsubscriptionEffect} from './effect-type';
+import { addEffectDescriptions } from './effect-description';
+import { isObservableEffect, isPromiseEffect, isUnsubscriptionEffect } from './effect-type';
 
 export type Runtime = Map<SubscriptionToken, Cancellable<any>>;
 
@@ -40,12 +37,11 @@ export function handleEffects<T>(injector: Injector, runtime: Runtime): (reduced
   }
 }
 
-
 function isStateWithEffects(state: any): state is StateWithEffects<any, any> {
   return state?.__brand === 'StateWithEffects';
 }
 
-function handleStateWithEffect<E>(effect: Effect<E>, runtime: Runtime, store: Store, injector: Injector): void {
+function handleStateWithEffect<E>(effect: EffectConfig<E>, runtime: Runtime, store: Store, injector: Injector): void {
   const operand = effect.operation(injector.get.bind(injector));
   if (isObservableEffect(effect, operand)) {
     const token = (Math.max(...runtime.keys()) + 1) as SubscriptionToken;

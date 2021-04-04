@@ -12,7 +12,7 @@ export function reducer(
   switch (action.type) {
     case Actions.subscribe:
       return withEffects(state, {
-        name: 'Interval',
+        type: 'Interval',
         // Note: we need this object to test effect description for complex objects
         operation: () => interval(1000).pipe(mapTo({a: {b: {c: 1}}})),
         next: (val: { a: { b: { c: number } } }) => new IncrementAction(val.a.b.c),

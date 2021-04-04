@@ -5,7 +5,7 @@ import { InjectionToken, Type } from '@angular/core';
 type Inject<T> = (token: Type<T> | InjectionToken<T>) => T;
 
 type EffectDescription = {
-  name: string;
+  type: string;
 };
 
 export type ObservableEffect<T> = {
@@ -29,13 +29,14 @@ export type UnsubscriptionEffect<T> = {
 
 export type Operand<T> = Observable<T> | Promise<T> | UnsubscribeOperation;
 
-export type Effect<T> = (ObservableEffect<T> | PromiseEffect<T> | UnsubscriptionEffect<T>) & Partial<EffectDescription>;
+export type EffectConfig<T> = (ObservableEffect<T> | PromiseEffect<T> | UnsubscriptionEffect<T>) &
+  Partial<EffectDescription>;
 
 export const stateWithEffectsBrand = 'StateWithEffects';
 export type StateWithEffects<S, E> = {
   __brand: typeof stateWithEffectsBrand;
   state: S;
-  effects: Effect<E>[];
+  effects: EffectConfig<E>[];
 };
 
 export type SubscriptionToken = number & { __brand: 'SubscriptionToken' };
@@ -43,7 +44,7 @@ export type CancellationToken = number & { __brand: 'CancellationToken' };
 
 export type Cancellable<T> = Subscription | AbortController;
 
-export function withEffects<S, E>(state: S, ...effects: Effect<E>[]): StateWithEffects<S, E> {
+export function withEffects<S, E>(state: S, ...effects: EffectConfig<E>[]): StateWithEffects<S, E> {
   return {
     __brand: stateWithEffectsBrand,
     state,
@@ -63,4 +64,8 @@ export function unsubscribe(subscriptionToken: SubscriptionToken): UnsubscribeOp
     __brand: unsubscribeBrand,
     subscriptionToken
   };
+}
+
+export function createReducerEffect<T>(effectConfig: EffectConfig<T>): EffectConfig<T> {
+  return effectConfig;
 }
