@@ -1,6 +1,6 @@
 {
-  "name": "ngrx-runtime",
-  "version": "0.1.6",
+  "name": "ngrx-reducer-effects",
+  "version": "0.1.0",
   "peerDependencies": {
     "@angular/common": ">10.0.0",
     "@angular/core": ">10.0.0",
@@ -9,5 +9,14 @@
   },
   "dependencies": {
     "tslib": "^2.0.0"
+  },
+  "homepage": "https://github.com/ggradnig/ngrx-reducer-effects",
+  "license": "MIT",
+  "author": {
+    "name": "Gerhard Gradnig"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ggradnig/ngrx-reducer-effects.git"
   }
 }
