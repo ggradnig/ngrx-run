@@ -1,6 +1,13 @@
 # NgRx Reducer Effects
 
-Run effects as a result of your reducer
+Return side-effects as data from your NgRx reducers
+
+## Summary
+
+- Effects are **described as data** in your reducers return statement
+- When the reducer returns, the described effects will be triggered by the runtime
+- Events created by the effects are turned into actions and dispatched back to the store
+- Thereby, you can write webapps with a simple **action -> reducer -> (state + effects)** loop
 
 ## Motivation
 
@@ -8,16 +15,17 @@ With the default `@Effect` decorator pattern in NgRx, side effects live outside 
 loop.
 
 As a result, reducers are usually not able to handle the business logic of an application. For example, say you wanted
-to make an HTTP call only if your user is logged-in. This business rule must be evaluated in an `@Effect`, where it is
+to make an HTTP call only if the user is logged-in. This business rule must be evaluated in an `@Effect`, where it is
 both harder to implement and test than in the reducer. Reducers can only really deal with synchronous state transitions.
 But if you think about it, why should there be a distinction between handling synchronous and asynchronous state
 transitions?
 
-The library makes effects be part of the `action -> reducer -> state` loop. You just return
+The **ngrx-reducer-effects** library makes effects part of the `action -> reducer -> state` loop. You just return
 **effects as additional data** together with the new state from your reducer.
 
 Doing so, you create more meaningful reducers, and your code becomes easier to follow. On top of that, you create
-concise and valuable tests that guarantee the correctness of complete use cases.
+concise and valuable tests that guarantee the correctness of complete use cases. See more about that in
+the [Testing](#testing) section.
 
 ## Setup
 
@@ -64,14 +72,14 @@ export function reducer(state: State = initialState, action: Action) {
     case ActionTypes.loadBlogPosts:
       return state.loggedIn ? withEffects(state, fetchBlogPosts) : state;
     case ActionTypes.blogPostsFetched:
-      return { ...state, blogPosts: action.blogPosts };
+      return {...state, blogPosts: action.blogPosts};
     case ActionTypes.blogPostsFetchError:
-      return { ...state, error: action.error };
+      return {...state, error: action.error};
   }
 }
 ```
 
-The same version without a effect stored in a constant looks like this:
+The same version with an inlined effect looks like this:
 
 ```ts
 export function reducer(state: State = initialState, action: Action) {
@@ -80,13 +88,13 @@ export function reducer(state: State = initialState, action: Action) {
       return !state.loggedIn
         ? state
         : withEffects(state, {
-            type: '[Blog] Fetch blog posts',
-            operation: () => fetch(`${apiUrl}/blog/posts`),
-            resolve: (blogPosts) => blogPostsFetched(blogPosts),
-            reject: (error) => blogPostsFetchError(error)
-          });
+          type: '[Blog] Fetch blog posts',
+          operation: () => fetch(`${apiUrl}/blog/posts`),
+          resolve: (blogPosts) => blogPostsFetched(blogPosts),
+          reject: (error) => blogPostsFetchError(error)
+        });
     case ActionTypes.blogPostsFetched:
-      return { ...state, blogPosts: action.blogPosts };
+      return {...state, blogPosts: action.blogPosts};
   }
 }
 ```
@@ -106,7 +114,7 @@ Here is a complete example with RxJS' WebSocket subject:
 
 ```ts
 export function reducer(
-  state: State = { blogPosts: [], type: 'unsubscribed' },
+  state: State = {blogPosts: [], type: 'unsubscribed'},
   action: Action
 ): StateWithEffects<State> {
   switch (action.type) {
@@ -118,7 +126,7 @@ export function reducer(
         subscribe: (token) => subscribed(token)
       });
     case Actions.subscribed:
-      return { ...state, type: 'subscribed', subscriptionToken: action.token };
+      return {...state, type: 'subscribed', subscriptionToken: action.token};
     case Actions.unsubscribe:
       return withEffects(state, {
         operation: () => unsubscribe(state.subscriptionToken),
@@ -126,11 +134,11 @@ export function reducer(
       });
       break;
     case Actions.unsubscribed:
-      return { counter: state.counter, type: 'unsubscribed' };
+      return {counter: state.counter, type: 'unsubscribed'};
     case Actions.blogPostsUpdated:
-      return { ...state, blogPosts: blogPosts.concat(action.blogPosts) };
+      return {...state, blogPosts: blogPosts.concat(action.blogPosts)};
     case Actions.blogPostUpdateError:
-      return { ...state, error: error.action };
+      return {...state, error: error.action};
   }
 }
 ```
@@ -157,10 +165,10 @@ it('should login, change the account settings and load 50 posts', async () => {
   expect(
     await reduceWithEffects(
       reducer,
-      [login(), changeAccountSettings({ numberOfPosts: 50 }), loadBlogPosts()],
+      [login(), changeAccountSettings({numberOfPosts: 50}), loadBlogPosts()],
       [blogClient]
     )
-  ).toEqual({ blogPosts: new Array(50) });
+  ).toEqual({blogPosts: new Array(50)});
 });
 ```
 
@@ -174,9 +182,9 @@ defining a chain of actions that transition your application in the tested state
 single tested action. Effects will not be run in this scenario.
 
 ```ts
-it('should load blog posts if logged-in and amount is divisible by 10', async () => {
+it('should load posts if logged-in and amount is divisible by 10', async () => {
   expect(
-    reducer({ numberOfPosts: 40, loggedIn: true }, loadBlogPosts()).toHaveEffect(
+    reducer({numOfPosts: 40, loggedIn: true}, loadBlogPosts()).toHaveEffect(
       fetchBlogPosts
     )
   );
@@ -187,7 +195,7 @@ it('should load blog posts if logged-in and amount is divisible by 10', async ()
 
 The library is fully compatible with
 [Redux DevTools](https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd?hl=de).
-Effects will be shown as part of the new state after an action. Note, that effects won't really be stored in the state -
+Effects will be shown as part of the new state after an action. Note that effects won't really be stored in the state -
 this representation is just for convenience.
 
 ## Utilities
@@ -202,7 +210,7 @@ possible. The library exports some utilities to help you do that.
 Create a union type of all action of a module. Use it in addition with action functions of NgRx
 
 ```ts
-import { createAction } from '@ngrx/store';
+import {createAction} from '@ngrx/store';
 
 const Actions = {
   login: createAction('[Blog] Log-in'),
