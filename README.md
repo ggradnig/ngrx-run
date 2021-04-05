@@ -4,12 +4,14 @@ Run effects as a result of your reducer
 
 ## Motivation
 
-`@Effect` is a pattern that handles side effects outside the `action -> reducer -> state` loop.
+With the default `@Effect` decorator pattern in NgRx, side effects live outside the `action -> reducer -> state`
+loop.
 
-Using this pattern, reducers are not fully responsible for the business logic. For example, say you wanted to make an
-HTTP call only if your user is logged-in. This business rule must be evaluated in an `@Effect`, where it is both harder
-to implement and test. Reducers can only really deal with synchronous state transitions. But if you think about it, why
-should there be a distinction between handling synchronous and asynchronous state transitions?
+As a result, reducers are usually not able to handle the business logic of an application. For example, say you wanted
+to make an HTTP call only if your user is logged-in. This business rule must be evaluated in an `@Effect`, where it is
+both harder to implement and test than in the reducer. Reducers can only really deal with synchronous state transitions.
+But if you think about it, why should there be a distinction between handling synchronous and asynchronous state
+transitions?
 
 The library makes effects be part of the `action -> reducer -> state` loop. You just return
 **effects as additional data** together with the new state from your reducer.

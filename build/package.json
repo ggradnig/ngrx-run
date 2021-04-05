@@ -1,7 +1,7 @@
 {
   "name": "ngrx-reducer-effects",
   "description": "Run effects as a result of your reducer",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "peerDependencies": {
     "@angular/common": ">10.0.0",
     "@angular/core": ">10.0.0",
