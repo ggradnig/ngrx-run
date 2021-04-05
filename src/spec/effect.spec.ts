@@ -1,6 +1,6 @@
 import { Store } from '@ngrx/store';
 import { TestBed } from '@angular/core/testing';
-import { RuntimeStoreModule } from '../lib/module';
+import { EffectStoreModule } from '../lib/module';
 import { IncrementAction, reducer, State, SubscribeAction } from './counter';
 import { testStoreValueAsync } from './util';
 
@@ -9,7 +9,7 @@ describe('Effect description', () => {
 
   function setup(): void {
     TestBed.configureTestingModule({
-      imports: [RuntimeStoreModule.forRoot({ feature: reducer })]
+      imports: [EffectStoreModule.forRoot({ feature: reducer })]
     });
     store = TestBed.inject(Store);
   }

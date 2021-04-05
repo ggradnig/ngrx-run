@@ -21,7 +21,7 @@ export const _REDUCER_FACTORY = new InjectionToken('ngrx-runtime Internal Reduce
 export const _RESOLVED_META_REDUCERS = new InjectionToken<MetaReducer>('ngrx-runtime Internal Resolved Meta Reducers');
 
 @NgModule({})
-export class RuntimeStoreModule extends StoreModule {
+export class EffectStoreModule extends StoreModule {
   static forRoot<T, V extends Action = Action>(
     reducers: ActionReducerMap<T, V> | InjectionToken<ActionReducerMap<T, V>>,
     config?: RootStoreConfig<T, V>

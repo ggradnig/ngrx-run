@@ -1,6 +1,6 @@
 import { Store, StoreModule } from '@ngrx/store';
 import { TestBed } from '@angular/core/testing';
-import { RuntimeStoreModule } from '../lib/module';
+import { EffectStoreModule } from '../lib/module';
 import { IncrementAction, reducer, State, States, SubscribeAction, UnsubscribeAction } from './counter';
 import { testStoreValue } from './util';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
@@ -11,14 +11,14 @@ describe('Store', () => {
 
   function setup(): void {
     TestBed.configureTestingModule({
-      imports: [RuntimeStoreModule.forRoot({ feature: reducer })]
+      imports: [EffectStoreModule.forRoot({ feature: reducer })]
     });
     store = TestBed.inject(Store);
   }
 
   function setupWithFeature(): void {
     TestBed.configureTestingModule({
-      imports: [RuntimeStoreModule.forRoot({}), StoreModule.forFeature('feature', reducer)]
+      imports: [EffectStoreModule.forRoot({}), StoreModule.forFeature('feature', reducer)]
     });
     store = TestBed.inject(Store);
   }
@@ -26,7 +26,7 @@ describe('Store', () => {
   function setupWithDevTools(): void {
     TestBed.configureTestingModule({
       imports: [
-        RuntimeStoreModule.forRoot({}),
+        EffectStoreModule.forRoot({}),
         StoreModule.forFeature('feature', reducer),
         StoreDevtoolsModule.instrument()
       ]

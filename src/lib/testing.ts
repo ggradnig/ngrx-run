@@ -2,7 +2,7 @@ import {Action, Store} from '@ngrx/store';
 import {ActionReducer, ReducerResult} from './types';
 import {Provider} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {RuntimeStoreModule} from './module';
+import {EffectStoreModule} from './module';
 import {firstValueFrom} from '../spec/util';
 import {EffectConfig} from './functions';
 
@@ -15,7 +15,7 @@ export async function reduceWithEffects<TState>(
 ): Promise<TState> {
   jest.useFakeTimers();
   TestBed.configureTestingModule({
-    imports: [RuntimeStoreModule.forRoot({feature: reducer})],
+    imports: [EffectStoreModule.forRoot({feature: reducer})],
     providers: config?.providers
   });
   const store: Store<{ feature: TState }> = TestBed.inject(Store);
