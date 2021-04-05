@@ -1,5 +1,5 @@
 /*
- * Public API Surface of ngrx-runtime
+ * Public API Surface of ngrx-reducer-effects
  */
 export {withEffects, unsubscribe, createReducerEffect} from './lib/functions';
 export {ReducerResult as StateWithEffects} from './lib/types';

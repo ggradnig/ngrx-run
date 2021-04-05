@@ -4,7 +4,10 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build",
+    "patch": "cd ./build && npm version patch && cd ..",
+    "build": "ng build --prod && cp README.md ./dist/ngrx-reducer-effects/README.md",
+    "publish": "npm publish ./dist/ngrx-reducer-effects",
+    "ci": "npm run patch && npm run build && npm run publish",
     "lint": "ng lint"
   },
   "private": true,

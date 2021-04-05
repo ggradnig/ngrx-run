@@ -17,8 +17,8 @@ import {
 import { createRuntimeReducerFactory } from './reducer';
 import {ActionReducer, ActionReducerMap} from './types';
 
-export const _REDUCER_FACTORY = new InjectionToken('ngrx-runtime Internal Reducer Factory Provider');
-export const _RESOLVED_META_REDUCERS = new InjectionToken<MetaReducer>('ngrx-runtime Internal Resolved Meta Reducers');
+export const _REDUCER_FACTORY = new InjectionToken('ngrx-reducer-effects Internal Reducer Factory Provider');
+export const _RESOLVED_META_REDUCERS = new InjectionToken<MetaReducer>('ngrx-reducer-effects Internal Resolved Meta Reducers');
 
 @NgModule({})
 export class EffectStoreModule extends StoreModule {

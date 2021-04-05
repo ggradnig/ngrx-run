@@ -1,30 +1,28 @@
-# NgRX Reducer Effects
+# NgRx Reducer Effects
 
-Run side-effects as a result of your reducer
+Run effects as a result of your reducer
 
 ## Motivation
 
-`@Effect` in NgRX is a pattern where side effects are handled outside the main `action -> reducer -> state` loop.
+`@Effect` is a pattern that handles side effects outside the `action -> reducer -> state` loop.
 
-With this pattern, reducers often don't really handle the application business logic. For example, say you wanted to
-make an HTTP call only if your user is logged-in. This condition must be implemented in an effect, where it is both
-harder to implement and test. Reducers can only really deal with synchronous state transitions that, in practice, don't
-make up much of the front-end business logic.
+Using this pattern, reducers are not fully responsible for the business logic. For example, say you wanted to make an
+HTTP call only if your user is logged-in. This business rule must be evaluated in an `@Effect`, where it is both harder
+to implement and test. Reducers can only really deal with synchronous state transitions. But if you think about it, why
+should there be a distinction between handling synchronous and asynchronous state transitions?
 
-Instead of treating effects separately, **ngrx-reducer-effects** makes effects be part of
-the `action -> reducer -> state` loop. Using the library, you return effects together with the new state from your
-reducer.
+The library makes effects be part of the `action -> reducer -> state` loop. You just return
+**effects as additional data** together with the new state from your reducer.
 
-Doing so, you create meaningful reducers that represent the entirety of the application business logic. Your code
-becomes easy to follow, because everything "happens" (i.e. events are handled) in the reducer. On top of that, you
-create concise and valuable unit tests that test for the correctness of complete user journeys.
+Doing so, you create more meaningful reducers, and your code becomes easier to follow. On top of that, you create
+concise and valuable tests that guarantee the correctness of complete use cases.
 
 ## Setup
 
-After installation, replace `StoreModule.forRoot` in your AppModule config with `EffectStoreModule.forRoot`.
+After installation, replace `StoreModule.forRoot` in your `AppModule` config with `EffectStoreModule.forRoot`.
 
-The library is fully downwards-compatible with existing NgRX implementations. After configuring the module, your code
-will work the same as before, and you won't notice any breaking changes. Now, you can add or migrate existing effects
+The library is fully downwards-compatible with existing NgRx implementations. After configuring the module, your code
+will work like before, and you won't notice any breaking changes. Now, you can add effects or migrate existing effects
 one by one and switch to `ngrx-reducer-effects` gracefully.
 
 After you've added `EffectStoreModule`, a runtime is attached to your application that handles all effects that are
@@ -39,10 +37,10 @@ Effects consist of four parts:
 - **type**: An optional string that describes what happens in the side effect (used to help you debugging)
 - **operation**: An asynchronous operation (Promise or Observable) that runs as a result of your reducer
 - **event handlers**: Action creator functions that react to events of the asynchronous operation
-- **subscription handlers**: Optional functions that handle subscribing / unsubscribing from Observable effects
+- **subscription handlers**: Optional functions that react to subscribing / unsubscribing from Observables
 
-You can optionally declare effects as constants so that they can easily be referenced in unit tests later on. The way
-you would do that is using:
+You can declare effects as constants so that they can easily be referenced in unit tests later on. The way you would do
+that is using:
 
 ```ts
 const fetchBlogPosts = createReducerEffect({
@@ -56,7 +54,7 @@ const fetchBlogPosts = createReducerEffect({
 ### Using effects
 
 Use `withEffects` as the return statement of your reducer to return side-effects. In this example, blog posts are only
-loaded for logged-in users with a pre-declared effect.
+loaded for logged-in users.
 
 ```ts
 export function reducer(state: State = initialState, action: Action) {
@@ -71,7 +69,7 @@ export function reducer(state: State = initialState, action: Action) {
 }
 ```
 
-The same version without a pre-declared effect looks like this:
+The same version without a effect stored in a constant looks like this:
 
 ```ts
 export function reducer(state: State = initialState, action: Action) {
@@ -96,11 +94,11 @@ export function reducer(state: State = initialState, action: Action) {
 You might have use-cases where you need an Observable side-effect. For example, a WebSocket stream that continuously
 emits data. Instead of defining `resolve` and `reject` as event handlers, you define `next`, `error` and `complete`.
 
-The runtime automatically subscribes to the Observable. Afterwards, the `subscribe` function declared in the effect is
-called with a `SubscriptionToken`. This token should be stored in the state and can later on be used with the
-pre-defined `unsubscribe` function to unsubscribe the subscription.
+The runtime automatically subscribes to the Observable. Afterwards, the `subscribe` action creator function declared in
+the effect is called with a `SubscriptionToken`. This token should be stored in the state and can later on be used with
+the pre-defined `unsubscribe` function to unsubscribe from the Observable.
 
-After unsubscribing successfully, the optional `unsubscribe` function declared in the effect is called.
+After unsubscribing successfully, the optional `unsubscribe` action creator function declared in the effect is called.
 
 Here is a complete example with RxJS' WebSocket subject:
 
@@ -143,10 +141,10 @@ settings and retrieves correct data depending on the account settings. This can 
 when the business logic is scattered around many classes and files.
 
 Luckily with **ngrx-reducer-effects** most of the test-relevant code of a use-case will live in one reducer. This makes
-it easy to write very readable and concise tests that guarantee that this use-case works correctly. These tests are able
-to bring much more value to your code than traditional class-scoped unit tests.
+it easy to write readable and concise tests that guarantee that this use-case works correctly. These tests are able to
+bring much more value to your code than traditional class-scoped unit tests.
 
-This example shows how you can write unit tests for use-cases with the `reduceWithEffects` helper function:
+The following example shows how you can write unit tests for use-cases using the `reduceWithEffects` helper function:
 
 ```ts
 it('should login, change the account settings and load 50 posts', async () => {
@@ -183,6 +181,13 @@ it('should load blog posts if logged-in and amount is divisible by 10', async ()
 });
 ```
 
+### Debugging
+
+The library is fully compatible with
+[Redux DevTools](https://chrome.google.com/webstore/detail/redux-devtools/lmhkpmbekcpmknklioeibfkpmmfibljd?hl=de).
+Effects will be shown as part of the new state after an action. Note, that effects won't really be stored in the state -
+this representation is just for convenience.
+
 ## Utilities
 
 **ngrx-reducer-effects** will likely increase the amount of code in your reducers, because action handlers will deal
@@ -192,7 +197,7 @@ possible. The library exports some utilities to help you do that.
 
 ### ActionsOf
 
-Create a union type of all action of a module. Use it in addition with action functions of NgRX
+Create a union type of all action of a module. Use it in addition with action functions of NgRx
 
 ```ts
 import { createAction } from '@ngrx/store';
@@ -223,8 +228,15 @@ export function reducer(state: State, action: ActionsOf<typeof Actions>) {
 
 ## Tips
 
-The library enables a style of web development that is similar to [Elm](https://elm-lang.org/),
-[redux-loop](https://github.com/redux-loop/redux-loop)
-or [AppRun](https://apprun.js.org/). Those tools have helpful tips that apply well to **ngrx-reducer-effects**.
+The library enables a style of web development that is similar to:
+
+- [Elm](https://elm-lang.org/),
+- [redux-loop](https://github.com/redux-loop/redux-loop)
+- [AppRun](https://apprun.js.org/).
+
+Those tools have helpful tips that apply well to **ngrx-reducer-effects**.
+
+In his talk [Effects as data](https://www.youtube.com/watch?v=6EdXaWfoslc&ab_channel=ReactiveConf), Richard Feldman
+explains how this style can help create better web applications.
 
 In the future, this repository will include tips to apply this development style specifically to Angular applications.
