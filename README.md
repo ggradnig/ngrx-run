@@ -72,9 +72,9 @@ export function reducer(state: State = initialState, action: Action) {
     case ActionTypes.loadBlogPosts:
       return state.loggedIn ? withEffects(state, fetchBlogPosts) : state;
     case ActionTypes.blogPostsFetched:
-      return {...state, blogPosts: action.blogPosts};
+      return { ...state, blogPosts: action.blogPosts };
     case ActionTypes.blogPostsFetchError:
-      return {...state, error: action.error};
+      return { ...state, error: action.error };
   }
 }
 ```
@@ -88,13 +88,13 @@ export function reducer(state: State = initialState, action: Action) {
       return !state.loggedIn
         ? state
         : withEffects(state, {
-          type: '[Blog] Fetch blog posts',
-          operation: () => fetch(`${apiUrl}/blog/posts`),
-          resolve: (blogPosts) => blogPostsFetched(blogPosts),
-          reject: (error) => blogPostsFetchError(error)
-        });
+            type: '[Blog] Fetch blog posts',
+            operation: () => fetch(`${apiUrl}/blog/posts`),
+            resolve: (blogPosts) => blogPostsFetched(blogPosts),
+            reject: (error) => blogPostsFetchError(error)
+          });
     case ActionTypes.blogPostsFetched:
-      return {...state, blogPosts: action.blogPosts};
+      return { ...state, blogPosts: action.blogPosts };
   }
 }
 ```
@@ -114,7 +114,7 @@ Here is a complete example with RxJS' WebSocket subject:
 
 ```ts
 export function reducer(
-  state: State = {blogPosts: [], type: 'unsubscribed'},
+  state: State = { blogPosts: [], type: 'unsubscribed' },
   action: Action
 ): StateWithEffects<State> {
   switch (action.type) {
@@ -126,7 +126,7 @@ export function reducer(
         subscribe: (token) => subscribed(token)
       });
     case Actions.subscribed:
-      return {...state, type: 'subscribed', subscriptionToken: action.token};
+      return { ...state, type: 'subscribed', subscriptionToken: action.token };
     case Actions.unsubscribe:
       return withEffects(state, {
         operation: () => unsubscribe(state.subscriptionToken),
@@ -134,11 +134,11 @@ export function reducer(
       });
       break;
     case Actions.unsubscribed:
-      return {counter: state.counter, type: 'unsubscribed'};
+      return { counter: state.counter, type: 'unsubscribed' };
     case Actions.blogPostsUpdated:
-      return {...state, blogPosts: blogPosts.concat(action.blogPosts)};
+      return { ...state, blogPosts: blogPosts.concat(action.blogPosts) };
     case Actions.blogPostUpdateError:
-      return {...state, error: error.action};
+      return { ...state, error: error.action };
   }
 }
 ```
@@ -165,10 +165,10 @@ it('should login, change the account settings and load 50 posts', async () => {
   expect(
     await reduceWithEffects(
       reducer,
-      [login(), changeAccountSettings({numberOfPosts: 50}), loadBlogPosts()],
+      [login(), changeAccountSettings({ numberOfPosts: 50 }), loadBlogPosts()],
       [blogClient]
     )
-  ).toEqual({blogPosts: new Array(50)});
+  ).toEqual({ blogPosts: new Array(50) });
 });
 ```
 
@@ -184,7 +184,7 @@ single tested action. Effects will not be run in this scenario.
 ```ts
 it('should load posts if logged-in and amount is divisible by 10', async () => {
   expect(
-    reducer({numOfPosts: 40, loggedIn: true}, loadBlogPosts()).toHaveEffect(
+    reducer({ numOfPosts: 40, loggedIn: true }, loadBlogPosts()).toHaveEffect(
       fetchBlogPosts
     )
   );
@@ -207,10 +207,10 @@ possible. The library exports some utilities to help you do that.
 
 ### ActionsOf
 
-Create a union type of all action of a module. Use it in addition with action functions of NgRx
+Create a union type of all actions of a module. Use it in addition with the `createAction` function of NgRx.
 
 ```ts
-import {createAction} from '@ngrx/store';
+import { createAction } from '@ngrx/store';
 
 const Actions = {
   login: createAction('[Blog] Log-in'),
@@ -238,7 +238,7 @@ export function reducer(state: State, action: ActionsOf<typeof Actions>) {
 
 ## Tips
 
-The library enables a style of web development that is similar to:
+The library enables a style of web development that is inspired by:
 
 - [Elm](https://elm-lang.org/),
 - [redux-loop](https://github.com/redux-loop/redux-loop)
@@ -247,6 +247,7 @@ The library enables a style of web development that is similar to:
 Those tools have helpful tips that apply well to **ngrx-reducer-effects**.
 
 In his talk [Effects as data](https://www.youtube.com/watch?v=6EdXaWfoslc&ab_channel=ReactiveConf), Richard Feldman
-explains how this style can help create better web applications.
+gives a great introduction on how this style can help create better web applications.
 
-In the future, this repository will include tips to apply this development style specifically to Angular applications.
+In the future, this repository will include tips on how to apply this development style specifically to Angular
+applications. Stay tuned 😉
