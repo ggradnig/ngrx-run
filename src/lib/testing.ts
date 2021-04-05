@@ -1,24 +1,28 @@
-import { Action, Store } from '@ngrx/store';
-import { ActionReducer, ReducerResult } from './types';
-import { Provider } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
-import { RuntimeStoreModule } from './module';
-import { firstValueFrom } from '../spec/util';
-import { EffectConfig } from './functions';
+import {Action, Store} from '@ngrx/store';
+import {ActionReducer, ReducerResult} from './types';
+import {Provider} from '@angular/core';
+import {TestBed} from '@angular/core/testing';
+import {RuntimeStoreModule} from './module';
+import {firstValueFrom} from '../spec/util';
+import {EffectConfig} from './functions';
+
+type Config = { providers?: Provider[] };
 
 export async function reduceWithEffects<TState>(
-  action: Action,
   reducer: ActionReducer<TState>,
-  providers: Provider[]
+  actions: Action[],
+  config?: Config
 ): Promise<TState> {
   jest.useFakeTimers();
   TestBed.configureTestingModule({
-    imports: [RuntimeStoreModule.forRoot({ feature: reducer })],
-    providers
+    imports: [RuntimeStoreModule.forRoot({feature: reducer})],
+    providers: config?.providers
   });
   const store: Store<{ feature: TState }> = TestBed.inject(Store);
-  store.dispatch(action);
-  jest.runOnlyPendingTimers();
+  for (const action of actions) {
+    store.dispatch(action);
+    jest.runOnlyPendingTimers();
+  }
   jest.useRealTimers();
   return await firstValueFrom(store.select((state) => state.feature));
 }
