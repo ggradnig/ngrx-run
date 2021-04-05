@@ -207,7 +207,8 @@ possible. The library exports some utilities to help you do that.
 
 ### ActionsOf
 
-Create a union type of all actions of a module. Use it in addition with the `createAction` function of NgRx.
+Creates a union type of all actions of a module. Use it in addition with the `createAction` function of NgRx to define
+exhaustive reducers that cover all possible actions.
 
 ```ts
 import { createAction } from '@ngrx/store';
@@ -238,11 +239,11 @@ export function reducer(state: State, action: ActionsOf<typeof Actions>) {
 
 ## Tips
 
-The library enables a style of web development that is inspired by:
+The library enables a style of web development that is similar to other tools like:
 
-- [Elm](https://elm-lang.org/),
+- [Elm](https://elm-lang.org/)
 - [redux-loop](https://github.com/redux-loop/redux-loop)
-- [AppRun](https://apprun.js.org/).
+- [AppRun](https://apprun.js.org/)
 
 Those tools have helpful tips that apply well to **ngrx-reducer-effects**.
 
