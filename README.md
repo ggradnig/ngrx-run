@@ -261,6 +261,32 @@ export function reducer(state: State, action: ActionsOf<typeof Actions>) {
 }
 ```
 
+### Status
+
+Status is a container class for effects that have a loading state, result and error. Using this container makes mapping
+possible values inside the reducer easier.
+
+```ts
+interface Model {
+  posts: BlogPost[];
+}
+
+type State = Status<Model>;
+
+const initialState: State = new Loading();
+
+function reducer(state: State = initialState, action: Action) {
+  switch (action.type) {
+    case ActionTypes.loadBlogPosts:
+      return withEffects(state, fetchBlogPosts);
+    case ActionTypes.blogPostsFetched:
+      return new Loaded({ blogPosts: action.blogPosts });
+    case ActionTypes.blogPostsFetchError:
+      return new Failed(action.error);
+  }
+}
+```
+
 ## Tips
 
 The library enables a style of web development that is similar to other tools like:
