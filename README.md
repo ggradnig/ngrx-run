@@ -4,27 +4,49 @@ Return side-effects as data from your NgRx reducers
 
 ## Summary
 
-- Effects are **described as data** in your reducers return statement
-- When the reducer returns, the described effects will be triggered by the runtime
+- Effects are **described as data** in your reducer's return statement
+- When the reducer returns, the described effects will be run
 - Events created by the effects are turned into actions and dispatched back to the store
 - Thereby, you can write webapps with a simple **action -> reducer -> (state + effects)** loop
+- The reducer takes care of the entire business logic, instead of splitting it with @Effect
+
+### Example
+
+```ts
+export function reducer(state: State, action: Action) {
+  switch (action.type) {
+    case ActionTypes.loadBlogPosts:
+      return withEffects(state, {
+        type: '[Blog] Fetch blog posts',
+        operation: () => fetch(`${apiUrl}/blog/posts`),
+        resolve: (blogPosts) => blogPostsFetched(blogPosts)
+      });
+    case ActionTypes.blogPostsFetched:
+      return { ...state, blogPosts: action.blogPosts };
+  }
+}
+```
 
 ## Motivation
 
-With the default `@Effect` decorator pattern in NgRx, side effects live outside the `action -> reducer -> state`
+With the built-in `@Effect` decorator pattern in NgRx, side effects live outside the `action -> reducer -> state`
 loop.
 
-As a result, reducers are usually not able to handle the business logic of an application. For example, say you wanted
-to make an HTTP call only if the user is logged-in. This business rule must be evaluated in an `@Effect`, where it is
-both harder to implement and test than in the reducer. Reducers can only really deal with synchronous state transitions.
-But if you think about it, why should there be a distinction between handling synchronous and asynchronous state
-transitions?
+As a result, reducers are usually not able to fully handle the business logic of an application. For example, say you
+wanted to make an HTTP call only if the user is logged-in. HTTP calls cannot be made in the reducer, so the if-condition
+must be checked in an `@Effect` instead. There, the logic is both harder to implement and to test because it is part of
+an (Observable) stream instead of a synchronous function. In addition, the split between reducer and `@Effect`s makes it
+more difficult to understand at a glance what exactly is going on with the application state when an action is
+dispatched.
 
-The **ngrx-reducer-effects** library makes effects part of the `action -> reducer -> state` loop. You just return
-**effects as additional data** together with the new state from your reducer.
+The **ngrx-reducer-effects** library simplifies effect handling, by treating effects like any other data structure that
+is returned by the reducer. To run a side effect, you just return an **effect description** together with the new state.
+The runtime will take care of running the effect and calls your action creators when events are emitted. By treating
+effects in this way, they become part of the `action -> reducer -> state` loop and work without external configuration
+like `@Effect`.
 
-Doing so, you create more meaningful reducers, and your code becomes easier to follow. On top of that, you create
-concise and valuable tests that guarantee the correctness of complete use cases. See more about that in
+Using this library, you create more meaningful reducers, and your code becomes easier to follow. On top of that, you
+create concise and valuable tests that guarantee the correctness of complete use cases. See more about that in
 the [Testing](#testing) section.
 
 ## Setup
@@ -95,6 +117,8 @@ export function reducer(state: State = initialState, action: Action) {
           });
     case ActionTypes.blogPostsFetched:
       return { ...state, blogPosts: action.blogPosts };
+    case ActionTypes.blogPostsFetchError:
+      return { ...state, error: action.error };
   }
 }
 ```

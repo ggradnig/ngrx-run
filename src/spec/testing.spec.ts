@@ -17,6 +17,6 @@ describe('Testing', () => {
       providers: [mockProvider(TestService, { performSideEffect: () => of(void 0) })]
     });
 
-    expect(state).toEqual(2);
+    expect(state).toEqual(3);
   });
 });
