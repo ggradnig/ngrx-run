@@ -2,14 +2,14 @@ import { Observable, Subscription } from 'rxjs';
 import { Action } from '@ngrx/store';
 import { InjectionToken, Type } from '@angular/core';
 
-type Inject<T> = (token: Type<T> | InjectionToken<T>) => T;
+type Inject = <T>(token: Type<T> | InjectionToken<T>) => T;
 
 type EffectDescription = {
   type: string;
 };
 
 export type ObservableEffect<T> = {
-  operation: (inject: Inject<any>) => Observable<T>;
+  operation: (inject: Inject) => Observable<T>;
   next: (value: T) => Action;
   error?: (err: any) => Action;
   complete?: () => Action;
@@ -17,20 +17,26 @@ export type ObservableEffect<T> = {
 };
 
 export type PromiseEffect<T> = {
-  operation: (inject: Inject<any>) => Promise<T>;
+  operation: (inject: Inject) => Promise<T>;
   resolve: (value: T) => Action;
   reject?: (err: any) => Action;
 };
 
 export type UnsubscriptionEffect<T> = {
-  operation: (inject: Inject<any>) => UnsubscribeOperation;
+  operation: (inject: Inject) => UnsubscribeOperation;
   unsubscribe?: (token: CancellationToken) => Action;
 };
 
 export type Operand<T> = Observable<T> | Promise<T> | UnsubscribeOperation;
 
-export type EffectConfig<T> = (ObservableEffect<T> | PromiseEffect<T> | UnsubscriptionEffect<T>) &
+export type EffectConfig<T> = (
+  | ObservableEffect<T>
+  | PromiseEffect<T>
+  | UnsubscriptionEffect<T>
+) &
   Partial<EffectDescription>;
+
+export type EffectCreator<S> = <E>(state: S) => EffectConfig<E>;
 
 export const stateWithEffectsBrand = 'StateWithEffects';
 export type StateWithEffects<S, E> = {
@@ -44,11 +50,16 @@ export type CancellationToken = number & { __brand: 'CancellationToken' };
 
 export type Cancellable<T> = Subscription | AbortController;
 
-export function withEffects<S, E>(state: S, ...effects: EffectConfig<E>[]): StateWithEffects<S, E> {
+export function withEffects<S, E>(
+  state: S,
+  ...effects: Array<EffectConfig<E> | EffectCreator<S>>
+): StateWithEffects<S, E> {
   return {
     __brand: stateWithEffectsBrand,
     state,
-    effects
+    effects: effects.map((effectConfig) =>
+      typeof effectConfig === 'function' ? effectConfig(state) : effectConfig
+    )
   };
 }
 
@@ -66,6 +77,8 @@ export function unsubscribe(subscriptionToken: SubscriptionToken): UnsubscribeOp
   };
 }
 
-export function createReducerEffect<T>(effectConfig: EffectConfig<T>): EffectConfig<T> {
-  return effectConfig;
+export function createReducerEffect<S>(
+  effectCreator: (state: S) => EffectConfig<any>
+): EffectCreator<S> {
+  return effectCreator;
 }

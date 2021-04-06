@@ -28,7 +28,6 @@ export function handleEffects<T>(injector: Injector, runtime: Runtime): (reduced
 
   function handleSliceEffects<S>(slicedState: ReducerResult<S>): S {
     if (isStateWithEffects(slicedState)) {
-      // @ts-ignore
       slicedState.effects.forEach((effect) => handleStateWithEffect(effect, runtime, injector.get(Store), injector));
       return addEffectDescriptions(slicedState.state, slicedState.effects);
     } else {

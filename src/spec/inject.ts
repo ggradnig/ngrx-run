@@ -1,6 +1,6 @@
 /* Reducer */
 
-import {withEffects} from '../lib/functions';
+import {createReducerEffect, withEffects} from '../lib/functions';
 import {Injectable} from '@angular/core';
 import {Observable, of} from 'rxjs';
 import {ActionsOf, StateWithEffects} from '../public-api';
@@ -13,13 +13,18 @@ export class TestService {
   }
 }
 
-export function reducer(state: 1 | 2 | 3 = 1, action: ActionsOf<typeof Actions>): StateWithEffects<1 | 2 | 3> {
+const effect = createReducerEffect<1 | 2 | 3>(() => ({
+  operation: (inject) => inject(TestService).performSideEffect(),
+  next: () => Actions.next()
+}));
+
+export function reducer(
+  state: 1 | 2 | 3 = 1,
+  action: ActionsOf<typeof Actions>
+): StateWithEffects<1 | 2 | 3> {
   switch (action.type) {
     case Actions.init.type:
-      return withEffects(state, {
-        operation: (inject) => inject(TestService).performSideEffect(),
-        next: () => Actions.next()
-      });
+      return withEffects(state, effect);
     case Actions.next.type:
       return 2 as const;
     case Actions.last.type:

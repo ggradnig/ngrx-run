@@ -75,12 +75,12 @@ You can declare effects as constants so that they can easily be referenced in un
 that is using:
 
 ```ts
-const fetchBlogPosts = createReducerEffect({
+const fetchBlogPosts = createReducerEffect<State>((state) => ({
   type: '[Blog] Fetch blog posts',
   operation: () => fetch(`${apiUrl}/blog/posts`),
   resolve: (blogPosts) => blogPostsFetched(blogPosts),
   reject: (error) => blogPostsFetchError(error)
-});
+}));
 ```
 
 ### Using effects

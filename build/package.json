@@ -1,7 +1,7 @@
 {
   "name": "ngrx-reducer-effects",
   "description": "Return side-effects as data from your NgRx reducers",
-  "version": "0.1.16",
+  "version": "0.1.22",
   "keywords": [
     "ngrx",
     "effects",
