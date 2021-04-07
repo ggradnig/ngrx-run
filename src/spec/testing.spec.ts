@@ -5,7 +5,7 @@ import { of } from 'rxjs';
 
 describe('Testing', () => {
   it('should perform the side effect of the mocked service', async () => {
-    const state = await reduceWithEffects(reducer, [Actions.init()], {
+    const state = await reduceWithEffects(reducer, [Actions.init({inc: 1})], {
       providers: [mockProvider(TestService, { performSideEffect: () => of(void 0) })]
     });
 
@@ -13,7 +13,7 @@ describe('Testing', () => {
   });
 
   it('should call two actions', async () => {
-    const state = await reduceWithEffects(reducer, [Actions.init(), Actions.last()], {
+    const state = await reduceWithEffects(reducer, [Actions.init({inc: 1}), Actions.last()], {
       providers: [mockProvider(TestService, { performSideEffect: () => of(void 0) })]
     });
 

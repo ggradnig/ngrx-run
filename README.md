@@ -92,7 +92,7 @@ loaded for logged-in users.
 export function reducer(state: State = initialState, action: Action) {
   switch (action.type) {
     case ActionTypes.loadBlogPosts:
-      return state.loggedIn ? withEffects(state, fetchBlogPosts) : state;
+      return state.loggedIn ? withEffects(state, fetchBlogPosts()) : state;
     case ActionTypes.blogPostsFetched:
       return { ...state, blogPosts: action.blogPosts };
     case ActionTypes.blogPostsFetchError:
@@ -278,7 +278,7 @@ const initialState: State = new Loading();
 function reducer(state: State = initialState, action: Action) {
   switch (action.type) {
     case ActionTypes.loadBlogPosts:
-      return withEffects(state, fetchBlogPosts);
+      return withEffects(state, fetchBlogPosts());
     case ActionTypes.blogPostsFetched:
       return new Loaded({ blogPosts: action.blogPosts });
     case ActionTypes.blogPostsFetchError:

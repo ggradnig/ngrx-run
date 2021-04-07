@@ -77,8 +77,14 @@ export function unsubscribe(subscriptionToken: SubscriptionToken): UnsubscribeOp
   };
 }
 
+export function createReducerEffect<S, A>(
+  effectCreator: (state: S, action: A) => EffectConfig<any>
+): (action: A) => EffectCreator<S>;
 export function createReducerEffect<S>(
   effectCreator: (state: S) => EffectConfig<any>
-): EffectCreator<S> {
-  return effectCreator;
+): () => EffectCreator<S>;
+export function createReducerEffect<S, A>(
+  effectCreator: (state: S, action?: A) => EffectConfig<any>
+): (action?: A) => EffectCreator<S> {
+  return (action?: A) => (state: S) => effectCreator(state, action);
 }
