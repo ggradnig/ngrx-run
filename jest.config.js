@@ -7,5 +7,10 @@ module.exports = {
       tsConfig: 'tsconfig.spec.json'
     }
   },
-  moduleDirectories: ['node_modules']
+  moduleDirectories: ['node_modules'],
+  roots: ['<rootDir>/modules'],
+  moduleNameMapper: {
+    'ngrx-reducer-effects': '<rootDir>/modules/lib/public_api.ts'
+  },
+  modulePaths: ['<rootDir>/dist']
 };

@@ -1,8 +1,8 @@
 /* Reducer */
 
-import {SubscriptionToken, unsubscribe, withEffects} from '../lib/functions';
+import {SubscriptionToken, unsubscribe, withEffects} from '../src/functions';
 import {interval} from 'rxjs';
-import {StateWithEffects} from '../public-api';
+import {StateWithEffects} from '../public_api';
 import {mapTo} from 'rxjs/operators';
 
 export function reducer(

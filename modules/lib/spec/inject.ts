@@ -1,9 +1,9 @@
 /* Reducer */
 
-import { createReducerEffect, withEffects } from '../lib/functions';
+import { createReducerEffect, withEffects } from '../src/functions';
 import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { ActionsOf, StateWithEffects } from '../public-api';
+import { ActionsOf, StateWithEffects } from '../public_api';
 import { createAction, props } from '@ngrx/store';
 
 @Injectable({ providedIn: 'root' })

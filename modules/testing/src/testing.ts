@@ -1,10 +1,9 @@
 import {Action, Store} from '@ngrx/store';
-import {ActionReducer, ReducerResult} from './types';
 import {Provider} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {EffectStoreModule} from './module';
-import {firstValueFrom} from '../spec/util';
-import {EffectConfig} from './functions';
+import {EffectStoreModule, EffectConfig, StateWithEffects, ActionReducer} from 'ngrx-reducer-effects';
+import {Observable} from 'rxjs';
+import {first} from 'rxjs/operators';
 
 type Config = { providers?: Provider[] };
 
@@ -38,7 +37,7 @@ declare global {
 }
 
 expect.extend({
-  toHaveEffect(received: ReducerResult<any>, expected: EffectConfig<any>): any {
+  toHaveEffect(received: StateWithEffects<any>, expected: EffectConfig<any>): any {
     const pass = received.effects.includes(expected);
     if (pass) {
       return {
@@ -53,3 +52,8 @@ expect.extend({
     }
   }
 });
+/* Util */
+
+function firstValueFrom<T>(obs$: Observable<T>): Promise<T> {
+  return obs$.pipe(first()).toPromise();
+}

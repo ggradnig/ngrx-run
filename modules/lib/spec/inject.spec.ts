@@ -1,6 +1,6 @@
 import { Store } from '@ngrx/store';
 import { TestBed } from '@angular/core/testing';
-import { EffectStoreModule } from '../lib/module';
+import { EffectStoreModule } from '../src/module';
 import { Actions, reducer } from './inject';
 import { testStoreValue } from './util';
 
@@ -16,7 +16,7 @@ describe('Inject', () => {
 
   it('should perform the side effect', (done) => {
     setup();
-    store.dispatch(Actions.init());
+    store.dispatch(Actions.init({inc: 1}));
     testStoreValue(2, done);
   });
 });

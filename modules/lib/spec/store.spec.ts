@@ -1,6 +1,6 @@
 import { Store, StoreModule } from '@ngrx/store';
 import { TestBed } from '@angular/core/testing';
-import { EffectStoreModule } from '../lib/module';
+import { EffectStoreModule } from '../src/module';
 import { IncrementAction, reducer, State, States, SubscribeAction, UnsubscribeAction } from './counter';
 import { testStoreValue } from './util';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';

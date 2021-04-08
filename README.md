@@ -5,7 +5,7 @@ Return side-effects as data from your NgRx reducers
 ## Summary
 
 - Effects are **described as data** in your reducer's return statement
-- When the reducer returns, the described effects will be run
+- When the reducer returns, the effects will be run
 - Events created by the effects are turned into actions and dispatched back to the store
 - Thereby, you can write webapps with a simple **action -> reducer -> (state + effects)** loop
 - The reducer takes care of the entire business logic, instead of splitting it with @Effect
@@ -26,6 +26,15 @@ export function reducer(state: State, action: Action) {
   }
 }
 ```
+
+### Real World Example App
+
+The example app is a perfect place to start if you
+
+- want to figure out what this library is about by directly digging into code or
+- want to get tips for the practical usage with real-world use-cases
+
+[RealWorld Example App](https://github.com/ggradnig/angular-ngrx-reducer-effects-realworld-example-app)
 
 ## Motivation
 
@@ -71,11 +80,15 @@ Effects consist of four parts:
 - **event handlers**: Action creator functions that react to events of the asynchronous operation
 - **subscription handlers**: Optional functions that react to subscribing / unsubscribing from Observables
 
-You can declare effects as constants so that they can easily be referenced in unit tests later on. The way you would do
-that is using:
+You can declare effects either by inlining them in your reducer or by using effect creators. With effect creators, you
+can use `expect().toHaveEffect()` to test if actions produce the expected effect.
+
+The following example shows how to use effect creators to declare effects:
 
 ```ts
-const fetchBlogPosts = createReducerEffect<State>((state) => ({
+import { createReducerEffect } from 'ngrx-reducer-effects';
+
+const fetchBlogPosts = createReducerEffect<State, Action>((state, action) => ({
   type: '[Blog] Fetch blog posts',
   operation: () => fetch(`${apiUrl}/blog/posts`),
   resolve: (blogPosts) => blogPostsFetched(blogPosts),
@@ -83,16 +96,21 @@ const fetchBlogPosts = createReducerEffect<State>((state) => ({
 }));
 ```
 
+Note that the argument `state` will be a snapshot of the state **after** the reducer returns. The argument `action`
+should be used for passing action data that is typically not saved in the state.
+
 ### Using effects
 
 Use `withEffects` as the return statement of your reducer to return side-effects. In this example, blog posts are only
-loaded for logged-in users.
+loaded for logged-in users:
 
 ```ts
-export function reducer(state: State = initialState, action: Action) {
+import { StateWithEffects, withEffects } from 'ngrx-reducer-effects';
+
+export function reducer(state: State, action: Action): StateWithEffects<State> {
   switch (action.type) {
     case ActionTypes.loadBlogPosts:
-      return state.loggedIn ? withEffects(state, fetchBlogPosts()) : state;
+      return state.loggedIn ? withEffects(state, fetchBlogPosts(action)) : state;
     case ActionTypes.blogPostsFetched:
       return { ...state, blogPosts: action.blogPosts };
     case ActionTypes.blogPostsFetchError:
@@ -101,10 +119,17 @@ export function reducer(state: State = initialState, action: Action) {
 }
 ```
 
+In the example, the effect-creator `fetchBlogPosts` is called with the `action` argument. This is only necessary when
+the effect creator needs additional action data. Otherwise you just call it with an empty argument
+list: `fetchBlogPosts()`. Also note, that the `state` argument doesn't need to be passed, as it will be provided
+automatically when the effect is run.
+
 The same version with an inlined effect looks like this:
 
 ```ts
-export function reducer(state: State = initialState, action: Action) {
+import { StateWithEffects, withEffects } from 'ngrx-reducer-effects';
+
+export function reducer(state: State, action: Action): StateWithEffects<State> {
   switch (action.type) {
     case ActionTypes.loadBlogPosts:
       return !state.loggedIn
@@ -137,6 +162,8 @@ After unsubscribing successfully, the optional `unsubscribe` action creator func
 Here is a complete example with RxJS' WebSocket subject:
 
 ```ts
+import { withEffects, unsubscribe, StateWithEffects } from 'ngrx-reducer-effects';
+
 export function reducer(
   state: State = { blogPosts: [], type: 'unsubscribed' },
   action: Action
@@ -181,6 +208,8 @@ bring much more value to your code than traditional class-scoped unit tests.
 The following example shows how you can write unit tests for use-cases using the `reduceWithEffects` helper function:
 
 ```ts
+import { reduceWithEffects } from 'ngrx-reducer-effects/testing';
+
 it('should login, change the account settings and load 50 posts', async () => {
   const blogClient = mockProvider(BlogClient, {
     getBlogPosts$: (amount) => new Array(amount)
@@ -206,6 +235,9 @@ defining a chain of actions that transition your application in the tested state
 single tested action. Effects will not be run in this scenario.
 
 ```ts
+// Import needed to register the `toHaveEffect` matcher
+import 'ngrx-reducer-effects/testing';
+
 it('should load posts if logged-in and amount is divisible by 10', async () => {
   expect(
     reducer({ numOfPosts: 40, loggedIn: true }, loadBlogPosts()).toHaveEffect(
@@ -236,6 +268,7 @@ exhaustive reducers that cover all possible actions.
 
 ```ts
 import { createAction } from '@ngrx/store';
+import { ActionsOf } from 'ngrx-reducer-effects';
 
 const Actions = {
   login: createAction('[Blog] Log-in'),
@@ -261,32 +294,6 @@ export function reducer(state: State, action: ActionsOf<typeof Actions>) {
 }
 ```
 
-### Status
-
-Status is a container class for effects that have a loading state, result and error. Using this container makes mapping
-possible values inside the reducer easier.
-
-```ts
-interface Model {
-  posts: BlogPost[];
-}
-
-type State = Status<Model>;
-
-const initialState: State = new Loading();
-
-function reducer(state: State = initialState, action: Action) {
-  switch (action.type) {
-    case ActionTypes.loadBlogPosts:
-      return withEffects(state, fetchBlogPosts());
-    case ActionTypes.blogPostsFetched:
-      return new Loaded({ blogPosts: action.blogPosts });
-    case ActionTypes.blogPostsFetchError:
-      return new Failed(action.error);
-  }
-}
-```
-
 ## Tips
 
 The library enables a style of web development that is similar to other tools like:
@@ -302,3 +309,10 @@ gives a great introduction on how this style can help create better web applicat
 
 In the future, this repository will include tips on how to apply this development style specifically to Angular
 applications. Stay tuned 😉
+
+Topics will include:
+
+- Global and local state
+  - Dealing with Angular Forms
+- Using the type system to build bullet-proof apps
+- Working with DOM APIs

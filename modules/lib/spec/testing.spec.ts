@@ -1,5 +1,5 @@
 import { Actions, reducer, TestService } from './inject';
-import { reduceWithEffects } from '../lib/testing';
+import { reduceWithEffects } from '../../testing/src/testing';
 import { mockProvider } from '@ngneat/spectator/jest';
 import { of } from 'rxjs';
 
