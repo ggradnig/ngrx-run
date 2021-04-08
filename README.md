@@ -88,7 +88,7 @@ The following example shows how to use effect creators to declare effects:
 ```ts
 import { createReducerEffect } from 'ngrx-reducer-effects';
 
-const fetchBlogPosts = createReducerEffect<State, Action>((state, action) => ({
+const fetchBlogPosts = createReducerEffect<State, Action>((state, params) => ({
   type: '[Blog] Fetch blog posts',
   operation: () => fetch(`${apiUrl}/blog/posts`),
   resolve: (blogPosts) => blogPostsFetched(blogPosts),
@@ -96,7 +96,7 @@ const fetchBlogPosts = createReducerEffect<State, Action>((state, action) => ({
 }));
 ```
 
-Note that the argument `state` will be a snapshot of the state **after** the reducer returns. The argument `action`
+Note that the argument `state` will be a snapshot of the state **after** the reducer returns. The argument `params`
 should be used for passing action data that is typically not saved in the state.
 
 ### Using effects
@@ -119,7 +119,7 @@ export function reducer(state: State, action: Action): StateWithEffects<State> {
 }
 ```
 
-In the example, the effect-creator `fetchBlogPosts` is called with the `action` argument. This is only necessary when
+In the example, the effect-creator `fetchBlogPosts` is called with the `params` argument. This is only necessary when
 the effect creator needs additional action data. Otherwise you just call it with an empty argument
 list: `fetchBlogPosts()`. Also note, that the `state` argument doesn't need to be passed, as it will be provided
 automatically when the effect is run.

@@ -9,6 +9,7 @@ import {
 
 interface EffectDescription {
   type?: string;
+  params?: any;
   nextAction?: string;
   errorAction?: string;
   completeAction?: string;
@@ -29,6 +30,7 @@ const proxy = new Proxy(target, handler);
 export function addEffectDescriptions<T, E>(state: T, effects: EffectConfig<any>[]): any {
   const effectDescriptions: EffectDescription[] = effects.map((effect) => ({
     type: effect.type,
+    params: effect.params,
     nextAction: hasNextAction(effect) ? effect.next(proxy).type : undefined,
     errorAction: hasErrorAction(effect) ? effect.error(proxy).type : undefined,
     completeAction: hasCompleteAction(effect) ? effect.complete().type : undefined,

@@ -6,6 +6,7 @@ type Inject = <T>(token: Type<T> | InjectionToken<T>) => T;
 
 type EffectDescription = {
   type: string;
+  params?: any;
 };
 
 export type ObservableEffect<T> = {
@@ -77,14 +78,14 @@ export function unsubscribe(subscriptionToken: SubscriptionToken): UnsubscribeOp
   };
 }
 
-export function createReducerEffect<S, A>(
-  effectCreator: (state: S, action: A) => EffectConfig<any>
-): (action: A) => EffectCreator<S>;
-export function createReducerEffect<S>(
-  effectCreator: (state: S) => EffectConfig<any>
-): () => EffectCreator<S>;
-export function createReducerEffect<S, A>(
-  effectCreator: (state: S, action?: A) => EffectConfig<any>
-): (action?: A) => EffectCreator<S> {
-  return (action?: A) => (state: S) => effectCreator(state, action);
+export function createReducerEffect<TState, TParams>(
+  effectCreator: (state: TState, params: TParams) => EffectConfig<any>
+): (params: TParams) => EffectCreator<TState>;
+export function createReducerEffect<TState>(
+  effectCreator: (state: TState) => EffectConfig<any>
+): () => EffectCreator<TState>;
+export function createReducerEffect<TState, TParams>(
+  effectCreator: (state: TState, params?: TParams) => EffectConfig<any>
+): (params?: TParams) => EffectCreator<TState> {
+  return (params?: TParams) => (state: TState) => Object.assign(effectCreator(state, params), {params});
 }
