@@ -1,7 +1,9 @@
 /*
  * Public API Surface of ngrx-reducer-effects
  */
-export {withEffects, unsubscribe, createReducerEffect, EffectConfig} from './src/functions';
-export {ReducerResult as StateWithEffects, ActionReducer} from './src/types';
+export {createReducerEffect} from './src/create-reducer-effect';
+export {withEffects, unsubscribe} from './src/functions';
+export {ReducerResult as StateWithEffects, ActionReducer} from './src/reducer';
 export {EffectStoreModule} from './src/module';
-export {ActionsOf, Status, Loaded, Loading, Failed, StatusTypes} from './src/util';
+export {ActionsOf} from './src/extra-utils';
+export {EffectConfig} from './src/effect-config';

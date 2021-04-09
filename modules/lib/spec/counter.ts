@@ -1,9 +1,10 @@
 /* Reducer */
 
-import {SubscriptionToken, unsubscribe, withEffects} from '../src/functions';
+import {unsubscribe, withEffects} from '../src/functions';
 import {interval} from 'rxjs';
 import {StateWithEffects} from '../public_api';
 import {mapTo} from 'rxjs/operators';
+import {SubscriptionToken} from '../src/effect';
 
 export function reducer(
   state: State = {counter: 0, type: States.unsubscribed},

@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { EffectStoreModule } from '../src/module';
 import {IncrementAction, reducer, State, SubscribeAction, SubscribedAction} from './counter';
 import { testStoreValueAsync } from './util';
-import {SubscriptionToken} from '../src/functions';
+import {SubscriptionToken} from '../src/effect';
 
 describe('Effect description', () => {
   let store: Store<{ feature: State }>;

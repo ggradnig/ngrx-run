@@ -1,29 +1,8 @@
-import {Action, ActionReducerFactory, ActionReducerMap, compose, MetaReducer} from '@ngrx/store';
-import {handleEffects} from './handle-effects';
-import {Injector} from '@angular/core';
-import {Cancellable, StateWithEffects, SubscriptionToken} from './functions';
-import {Subscription} from 'rxjs';
+import { Action } from '@ngrx/store';
+import {StateWithEffects} from './state-with-effects';
 
-export type TypeId<T> = () => T;
-export type InitialState<T> = Partial<T> | TypeId<Partial<T>> | void;
-
-export function createRuntimeReducerFactory<T, V extends Action = Action>(
-  reducerFactory: ActionReducerFactory<T, V>,
-  injector: Injector,
-  metaReducers?: MetaReducer<T, V>[]
-): (reducers: ActionReducerMap<T, V>, initialState?: InitialState<T>) => (state: T | undefined, action: V) => T {
-  const runtime = new Map<SubscriptionToken, Cancellable<any>>();
-  // TODO: Set default counter value
-  runtime.set(31415 as SubscriptionToken, new Subscription());
-
-  if (Array.isArray(metaReducers) && metaReducers.length > 0) {
-    (reducerFactory as any) = compose.apply(null, [...metaReducers, reducerFactory]);
-  }
-  return (reducers: ActionReducerMap<T, V>, initialState?: InitialState<T>) => {
-    const reducer = reducerFactory(reducers);
-    return (state: T | undefined, action: V) => {
-      state = state === undefined ? (initialState as T) : state;
-      return handleEffects<T>(injector, runtime)(reducer(state, action));
-    };
-  };
-}
+export declare type ActionReducerMap<T, V extends Action = Action> = {
+  [p in keyof T]: ActionReducer<T[p]>;
+};
+export type ReducerResult<T> = T | StateWithEffects<T, any>;
+export type ActionReducer<T> = (state: T | undefined, action: any) => ReducerResult<T>;

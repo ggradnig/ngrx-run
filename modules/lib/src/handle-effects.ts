@@ -1,18 +1,19 @@
 import { Injector } from '@angular/core';
 import { Store } from '@ngrx/store';
+import { Observable, Subscription } from 'rxjs';
+import { ReducerResult } from './reducer';
+import { addEffectDescriptions } from './effect-description';
 import {
   Cancellable,
   CancellationToken,
-  EffectConfig,
-  StateWithEffects,
-  SubscriptionToken,
+  isObservableEffect,
+  isPromiseEffect,
+  isUnsubscriptionEffect, SubscriptionToken,
   UnsubscribeOperation,
   UnsubscriptionEffect
-} from './functions';
-import { Observable, Subscription } from 'rxjs';
-import { ReducerResult } from './types';
-import { addEffectDescriptions } from './effect-description';
-import { isObservableEffect, isPromiseEffect, isUnsubscriptionEffect } from './effect-type';
+} from './effect';
+import {EffectConfig} from './effect-config';
+import {StateWithEffects} from './state-with-effects';
 
 export type Runtime = Map<SubscriptionToken, Cancellable<any>>;
 
@@ -40,13 +41,13 @@ function isStateWithEffects(state: any): state is StateWithEffects<any, any> {
   return state?.__brand === 'StateWithEffects';
 }
 
-function handleStateWithEffect<E>(effect: EffectConfig<E>, runtime: Runtime, store: Store, injector: Injector): void {
+function handleStateWithEffect<TEffect>(effect: EffectConfig<TEffect>, runtime: Runtime, store: Store, injector: Injector): void {
   const operand = effect.operation(injector.get.bind(injector));
   if (isObservableEffect(effect, operand)) {
     const token = (Math.max(...runtime.keys()) + 1) as SubscriptionToken;
 
-    const subscription = (operand as Observable<E>).subscribe({
-      next: (value) => store.dispatch(effect.next(value)),
+    const subscription = (operand as Observable<TEffect>).subscribe({
+      next: (value) => effect.next && store.dispatch(effect.next(value)),
       error: (err) => effect.error && store.dispatch(effect.error(err)),
       complete: () => effect.complete && store.dispatch(effect.complete())
     });
@@ -55,8 +56,8 @@ function handleStateWithEffect<E>(effect: EffectConfig<E>, runtime: Runtime, sto
       store.dispatch(effect.subscribe(token));
     }
   } else if (isPromiseEffect(effect, operand)) {
-    (operand as Promise<E>).then(
-      (value) => store.dispatch(effect.resolve(value)),
+    (operand as Promise<TEffect>).then(
+      (value) => effect.resolve && store.dispatch(effect.resolve(value)),
       (err) => effect.reject && store.dispatch(effect.reject(err))
     );
   } else if (isUnsubscriptionEffect(effect, operand)) {

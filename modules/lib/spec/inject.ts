@@ -1,12 +1,9 @@
-/* Reducer */
+import {Injectable} from '@angular/core';
+import {Observable, of} from 'rxjs';
+import {ActionsOf, createReducerEffect, StateWithEffects, withEffects} from '../public_api';
+import {createAction, props} from '@ngrx/store';
 
-import { createReducerEffect, withEffects } from '../src/functions';
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { ActionsOf, StateWithEffects } from '../public_api';
-import { createAction, props } from '@ngrx/store';
-
-@Injectable({ providedIn: 'root' })
+@Injectable({providedIn: 'root'})
 export class TestService {
   performSideEffect(): Observable<void> {
     return of(void 0);
