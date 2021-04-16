@@ -10,9 +10,9 @@ export class TestService {
   }
 }
 
-const effect = createReducerEffect<1 | 2 | 3, { inc: number }>((_, action) => ({
+const effect = createReducerEffect<{ state: number, inc: number }>((params) => ({
   operation: (inject) => inject(TestService).performSideEffect(),
-  next: () => Actions.next(action)
+  next: () => Actions.next( {inc: params.inc})
 }));
 
 export function reducer(
@@ -21,7 +21,7 @@ export function reducer(
 ): StateWithEffects<1 | 2 | 3> {
   switch (action.type) {
     case Actions.init.type:
-      return run(state, effect(action));
+      return run(state, effect({state, inc: action.inc}));
     case Actions.next.type:
       return 2 as const;
     case Actions.last.type:
