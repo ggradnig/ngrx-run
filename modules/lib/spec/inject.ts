@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Observable, of} from 'rxjs';
-import {ActionsOf, createReducerEffect, StateWithEffects, withEffects} from '../public_api';
+import {ActionsOf, createReducerEffect, StateWithEffects, run} from '../public_api';
 import {createAction, props} from '@ngrx/store';
 
 @Injectable({providedIn: 'root'})
@@ -21,7 +21,7 @@ export function reducer(
 ): StateWithEffects<1 | 2 | 3> {
   switch (action.type) {
     case Actions.init.type:
-      return withEffects(state, effect(action));
+      return run(state, effect(action));
     case Actions.next.type:
       return 2 as const;
     case Actions.last.type:

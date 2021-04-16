@@ -1,6 +1,6 @@
 /* Reducer */
 
-import {unsubscribe, withEffects} from '../src/functions';
+import {unsubscribe, run} from '../src/functions';
 import {interval} from 'rxjs';
 import {StateWithEffects} from '../public_api';
 import {mapTo} from 'rxjs/operators';
@@ -12,7 +12,7 @@ export function reducer(
 ): StateWithEffects<State> {
   switch (action.type) {
     case Actions.subscribe:
-      return withEffects(state, {
+      return run(state, {
         type: 'Interval',
         // Note: we need this object to test effect description for complex objects
         operation: () => interval(1000).pipe(mapTo({a: {b: {c: 1}}})),
@@ -24,7 +24,7 @@ export function reducer(
     case Actions.unsubscribe:
       switch (state.type) {
         case States.subscribed:
-          return withEffects(state, {
+          return run(state, {
             operation: () => unsubscribe(state.subscriptionToken),
             unsubscribe: () => new UnsubscribedAction()
           });

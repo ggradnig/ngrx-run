@@ -1,17 +1,15 @@
 import {SubscriptionToken, UnsubscribeOperation} from './effect';
-import {EffectConfig, EffectCreator} from './effect-config';
+import {EffectConfig} from './effect-config';
 import {StateWithEffects, stateWithEffectsBrand} from './state-with-effects';
 
-export function withEffects<TState, TEffect>(
+export function run<TState, TEffect>(
   state: TState,
-  ...effects: Array<EffectConfig<TEffect> | EffectCreator<TState>>
+  ...effects: Array<EffectConfig<TEffect>>
 ): StateWithEffects<TState, TEffect> {
   return {
     __brand: stateWithEffectsBrand,
     state,
-    effects: effects.map((effectConfig) =>
-      typeof effectConfig === 'function' ? effectConfig(state) : effectConfig
-    )
+    effects
   };
 }
 

@@ -16,7 +16,7 @@ Return side-effects as data from your NgRx reducers
 export function reducer(state: State, action: Action) {
   switch (action.type) {
     case ActionTypes.loadBlogPosts:
-      return withEffects(state, {
+      return run(state, {
         type: '[Blog] Fetch blog posts',
         operation: () => fetch(`${apiUrl}/blog/posts`),
         resolve: (blogPosts) => blogPostsFetched(blogPosts)
@@ -88,7 +88,7 @@ The following example shows how to use effect creators to declare effects:
 ```ts
 import { createReducerEffect } from 'ngrx-reducer-effects';
 
-const fetchBlogPosts = createReducerEffect<State, Action>((state, params) => ({
+const fetchBlogPosts = createReducerEffect<State, Action>((params) => ({
   type: '[Blog] Fetch blog posts',
   operation: () => fetch(`${apiUrl}/blog/posts`),
   resolve: (blogPosts) => blogPostsFetched(blogPosts),
@@ -96,21 +96,18 @@ const fetchBlogPosts = createReducerEffect<State, Action>((state, params) => ({
 }));
 ```
 
-Note that the argument `state` will be a snapshot of the state **after** the reducer returns. The argument `params`
-should be used for passing action data that is typically not saved in the state.
-
 ### Using effects
 
-Use `withEffects` as the return statement of your reducer to return side-effects. In this example, blog posts are only
+Use `run` as the return statement of your reducer to return side-effects. In this example, blog posts are only
 loaded for logged-in users:
 
 ```ts
-import { StateWithEffects, withEffects } from 'ngrx-reducer-effects';
+import { StateWithEffects, run } from 'ngrx-reducer-effects';
 
 export function reducer(state: State, action: Action): StateWithEffects<State> {
   switch (action.type) {
     case ActionTypes.loadBlogPosts:
-      return state.loggedIn ? withEffects(state, fetchBlogPosts(action)) : state;
+      return state.loggedIn ? run(state, fetchBlogPosts(action)) : state;
     case ActionTypes.blogPostsFetched:
       return { ...state, blogPosts: action.blogPosts };
     case ActionTypes.blogPostsFetchError:
@@ -120,21 +117,19 @@ export function reducer(state: State, action: Action): StateWithEffects<State> {
 ```
 
 In the example, the effect-creator `fetchBlogPosts` is called with the `params` argument. This is only necessary when
-the effect creator needs additional action data. Otherwise you just call it with an empty argument
-list: `fetchBlogPosts()`. Also note, that the `state` argument doesn't need to be passed, as it will be provided
-automatically when the effect is run.
+the effect creator needs additional data. Otherwise you just call it with an empty argument list: `fetchBlogPosts()`.
 
 The same version with an inlined effect looks like this:
 
 ```ts
-import { StateWithEffects, withEffects } from 'ngrx-reducer-effects';
+import { StateWithEffects, run } from 'ngrx-reducer-effects';
 
 export function reducer(state: State, action: Action): StateWithEffects<State> {
   switch (action.type) {
     case ActionTypes.loadBlogPosts:
       return !state.loggedIn
         ? state
-        : withEffects(state, {
+        : run(state, {
             type: '[Blog] Fetch blog posts',
             operation: () => fetch(`${apiUrl}/blog/posts`),
             resolve: (blogPosts) => blogPostsFetched(blogPosts),
@@ -162,7 +157,7 @@ After unsubscribing successfully, the optional `unsubscribe` action creator func
 Here is a complete example with RxJS' WebSocket subject:
 
 ```ts
-import { withEffects, unsubscribe, StateWithEffects } from 'ngrx-reducer-effects';
+import { run, unsubscribe, StateWithEffects } from 'ngrx-reducer-effects';
 
 export function reducer(
   state: State = { blogPosts: [], type: 'unsubscribed' },
@@ -170,7 +165,7 @@ export function reducer(
 ): StateWithEffects<State> {
   switch (action.type) {
     case Actions.subscribe:
-      return withEffects(state, {
+      return run(state, {
         operation: () => webSocket(`${wsUrl}/blog/posts`),
         next: (blogPosts) => blogPostsUpdated(blogPosts),
         error: (blogPosts) => blogPostUpdateError(blogPosts),
@@ -179,7 +174,7 @@ export function reducer(
     case Actions.subscribed:
       return { ...state, type: 'subscribed', subscriptionToken: action.token };
     case Actions.unsubscribe:
-      return withEffects(state, {
+      return run(state, {
         operation: () => unsubscribe(state.subscriptionToken),
         unsubscribe: () => unsubscribed()
       });

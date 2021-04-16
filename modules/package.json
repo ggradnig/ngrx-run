@@ -1,7 +1,7 @@
 {
-  "name": "ngrx-reducer-effects",
+  "name": "ngrx-run",
   "description": "Return side-effects as data from your NgRx reducers",
-  "version": "0.1.27",
+  "version": "0.2.0",
   "keywords": [
     "ngrx",
     "effects",
@@ -18,13 +18,13 @@
   "dependencies": {
     "tslib": "^2.0.0"
   },
-  "homepage": "https://github.com/ggradnig/ngrx-reducer-effects",
+  "homepage": "https://github.com/ggradnig/ngrx-run",
   "license": "MIT",
   "author": {
     "name": "Gerhard Gradnig"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ggradnig/ngrx-reducer-effects.git"
+    "url": "https://github.com/ggradnig/ngrx-run.git"
   }
 }

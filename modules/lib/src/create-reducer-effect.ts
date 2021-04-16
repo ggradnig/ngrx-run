@@ -1,14 +1,17 @@
+import { EffectConfig } from './effect-config';
 
-import {EffectConfig, EffectCreator} from './effect-config';
-
-export function createReducerEffect<TState, TParams>(
-  effectCreator: (state: TState, params: TParams) => EffectConfig<any>
-): (params: TParams) => EffectCreator<TState>;
-export function createReducerEffect<TState>(
-  effectCreator: (state: TState) => EffectConfig<any>
-): () => EffectCreator<TState>;
-export function createReducerEffect<TState, TParams>(
-  effectCreator: (state: TState, params?: TParams) => EffectConfig<any>
-): (params?: TParams) => EffectCreator<TState> {
-  return (params?: TParams) => (state: TState) => Object.assign(effectCreator(state, params), {params});
+export function createReducerEffect<TParams>(
+  effectCreator: (params: TParams) => EffectConfig<any>
+): (params: TParams) => EffectConfig<any>;
+export function createReducerEffect(
+  effectCreator: EffectConfig<any>
+): () => EffectConfig<any>;
+export function createReducerEffect<TParams>(
+  effectCreator: ((params?: TParams) => EffectConfig<any>) | EffectConfig<any>
+): (params?: TParams) => EffectConfig<any> {
+  return (params?: TParams) =>
+    Object.assign(
+      typeof effectCreator === 'function' ? effectCreator(params) : effectCreator,
+      { params }
+    );
 }

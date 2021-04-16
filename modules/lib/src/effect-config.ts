@@ -10,5 +10,3 @@ export type EffectConfig<T> = (
   | UnsubscriptionEffect<T>
 ) &
   Partial<EffectExtras>;
-
-export type EffectCreator<TState> = <TEffect>(state: TState) => EffectConfig<TEffect>;

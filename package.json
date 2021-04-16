@@ -1,5 +1,5 @@
 {
-  "name": "ngrx-reducer-effects",
+  "name": "ngrx-run",
   "version": "0.0.1",
   "scripts": {
     "ng": "ng",
