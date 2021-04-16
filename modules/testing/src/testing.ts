@@ -1,7 +1,7 @@
 import {Action, Store} from '@ngrx/store';
 import {Provider} from '@angular/core';
 import {TestBed} from '@angular/core/testing';
-import {EffectStoreModule, EffectConfig, StateWithEffects, ActionReducer} from 'ngrx-reducer-effects';
+import {EffectStoreModule, EffectConfig, StateWithEffects, ActionReducer} from 'ngrx-run';
 import {Observable} from 'rxjs';
 import {first} from 'rxjs/operators';
 

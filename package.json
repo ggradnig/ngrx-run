@@ -6,8 +6,8 @@
     "start": "ng serve",
     "test": "jest",
     "patch": "cd ./modules && npm version patch && cd ..",
-    "build": "ng build --prod && cp README.md ./dist/ngrx-reducer-effects/README.md",
-    "publish": "npm publish ./dist/ngrx-reducer-effects",
+    "build": "ng build --prod && cp README.md ./dist/ngrx-run/README.md",
+    "publish": "npm publish ./dist/ngrx-run",
     "ci": "npm run test && npm run patch && npm run build && npm run publish",
     "lint": "ng lint"
   },

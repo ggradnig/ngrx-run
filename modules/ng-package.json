@@ -1,6 +1,6 @@
 {
   "$schema": "../node_modules/ng-packagr/ng-package.schema.json",
-  "dest": "../dist/ngrx-reducer-effects",
+  "dest": "../dist/ngrx-run",
   "lib": {
     "entryFile": "./lib/public_api.ts"
   }

@@ -2,7 +2,7 @@
   "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
   "version": 1,
   "projects": {
-    "ngrx-reducer-effects": {
+    "ngrx-run": {
       "projectType": "library",
       "root": "./",
       "sourceRoot": "./src",

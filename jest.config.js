@@ -10,7 +10,7 @@ module.exports = {
   moduleDirectories: ['node_modules'],
   roots: ['<rootDir>/modules'],
   moduleNameMapper: {
-    'ngrx-reducer-effects': '<rootDir>/modules/lib/public_api.ts'
+    'ngrx-run': '<rootDir>/modules/lib/public_api.ts'
   },
   modulePaths: ['<rootDir>/dist']
 };

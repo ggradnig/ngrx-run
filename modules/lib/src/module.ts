@@ -14,10 +14,10 @@ import {createRuntimeReducerFactory} from './reducer-factory';
 import {ActionReducerMap} from './reducer';
 
 const _REDUCER_FACTORY = new InjectionToken(
-  'ngrx-reducer-effects Internal Reducer Factory Provider'
+  'ngrx-run Internal Reducer Factory Provider'
 );
 const _RESOLVED_META_REDUCERS = new InjectionToken<MetaReducer>(
-  'ngrx-reducer-effects Internal Resolved Meta Reducers'
+  'ngrx-run Internal Resolved Meta Reducers'
 );
 
 @NgModule({})

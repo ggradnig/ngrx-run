@@ -1,5 +1,5 @@
 /*
- * Public API Surface of ngrx-reducer-effects
+ * Public API Surface of ngrx-run
  */
 export {createReducerEffect} from './src/create-reducer-effect';
 export {run, unsubscribe} from './src/functions';

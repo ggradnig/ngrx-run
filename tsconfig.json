@@ -20,9 +20,9 @@
       "dom"
     ],
     "paths": {
-      "ngrx-reducer-effects": [
-        "dist/ngrx-reducer-effects/ngrx-reducer-effects",
-        "dist/ngrx-reducer-effects"
+      "ngrx-run": [
+        "dist/ngrx-run/ngrx-run",
+        "dist/ngrx-run"
       ]
     }
   },
