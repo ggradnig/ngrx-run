@@ -1,12 +1,12 @@
-import { unsubscribeBrand } from './functions';
-import { isObservable, Observable, Subscription } from 'rxjs';
-import { Action } from '@ngrx/store';
-import { InjectionToken, Type } from '@angular/core';
+import {unsubscribeBrand} from './functions';
+import {isObservable, Observable, Subscription} from 'rxjs';
+import {Action} from '@ngrx/store';
+import {InjectionToken, Type} from '@angular/core';
 import {EffectConfig} from './effect-config';
 
 export type Inject = <T>(token: Type<T> | InjectionToken<T>) => T;
 
-export type Operand<T> = Observable<T> | Promise<T> | UnsubscribeOperation;
+export type Operand<T> = Observable<T> | Promise<T> | UnsubscribeOperation | void;
 
 export type SubscriptionToken = number & { __brand: 'SubscriptionToken' };
 
@@ -17,23 +17,33 @@ export type UnsubscribeOperation = {
   subscriptionToken: SubscriptionToken;
 };
 
-export type ObservableEffect<T> = {
-  operation: (inject: Inject) => Observable<T>;
+export type ObservableEffectConfig<T> = {
   next?: (value: T) => Action;
   error?: (err: any) => Action;
   complete?: () => Action;
   subscribe?: (token: SubscriptionToken) => Action;
 };
 
+export type ObservableEffect<T> = ObservableEffectConfig<T> & {
+  operation: (inject: Inject) => Observable<T>;
+};
+
 export type PromiseEffect<T> = {
   operation: (inject: Inject) => Promise<T>;
-  resolve?: (value: T) => Action;
-  reject?: (err: any) => Action;
+  complete?: (value: T) => Action;
+  error?: (err: any) => Action;
+};
+
+export type SynchronousEffect<T> = {
+  operation: (inject: Inject) => void,
+  complete?: () => Action;
+  error?: (err: any) => Action
 };
 
 export type UnsubscriptionEffect<T> = {
   operation: (inject: Inject) => UnsubscribeOperation;
   unsubscribe?: (token: CancellationToken) => Action;
+  error?: (err: any) => Action;
 };
 
 export function isObservableEffect<E>(

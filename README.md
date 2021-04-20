@@ -86,9 +86,9 @@ can use `expect().toHaveEffect()` to test if actions produce the expected effect
 The following example shows how to use effect creators to declare effects:
 
 ```ts
-import { createReducerEffect } from 'ngrx-run';
+import { createEffect } from 'ngrx-run';
 
-const fetchBlogPosts = createReducerEffect<State, Action>((params) => ({
+const fetchBlogPosts = createEffect<State, Action>((params) => ({
   type: '[Blog] Fetch blog posts',
   operation: () => fetch(`${apiUrl}/blog/posts`),
   resolve: (blogPosts) => blogPostsFetched(blogPosts),

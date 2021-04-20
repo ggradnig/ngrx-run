@@ -1,14 +1,16 @@
-import { Injector } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { Observable, Subscription } from 'rxjs';
-import { ReducerResult } from './reducer';
-import { addEffectDescriptions } from './effect-description';
+import {Injector} from '@angular/core';
+import {Store} from '@ngrx/store';
+import {Observable, Subscription} from 'rxjs';
+import {ReducerResult} from './reducer';
+import {addEffectDescriptions} from './effect-description';
 import {
   Cancellable,
   CancellationToken,
   isObservableEffect,
   isPromiseEffect,
-  isUnsubscriptionEffect, SubscriptionToken,
+  isUnsubscriptionEffect,
+  Operand,
+  SubscriptionToken,
   UnsubscribeOperation,
   UnsubscriptionEffect
 } from './effect';
@@ -22,7 +24,7 @@ export function handleEffects<T>(injector: Injector, runtime: Runtime): (reduced
     let newState: T = handleSliceEffects(reduced);
     // tslint:disable-next-line:forin
     for (const key in newState) {
-      newState = { ...newState, [key]: handleSliceEffects(newState[key]) };
+      newState = {...newState, [key]: handleSliceEffects(newState[key])};
     }
     return newState;
   };
@@ -42,7 +44,21 @@ function isStateWithEffects(state: any): state is StateWithEffects<any, any> {
 }
 
 function handleStateWithEffect<TEffect>(effect: EffectConfig<TEffect>, runtime: Runtime, store: Store, injector: Injector): void {
-  const operand = effect.operation(injector.get.bind(injector));
+  let operand: Operand<TEffect>;
+  try {
+    operand = effect.operation(injector.get.bind(injector));
+  } catch (err) {
+    if (effect.error) {
+      try {
+        store.dispatch(effect.error(err));
+      } catch (innerError) {
+        console.error(`Unhandled error while creating error action for effect "${effect.type}"`, innerError);
+      }
+    } else {
+      console.error(`Unhandled error while creating operation for effect "${effect.type}"`, err);
+    }
+  }
+
   if (isObservableEffect(effect, operand)) {
     const token = (Math.max(...runtime.keys()) + 1) as SubscriptionToken;
 
@@ -57,11 +73,15 @@ function handleStateWithEffect<TEffect>(effect: EffectConfig<TEffect>, runtime: 
     }
   } else if (isPromiseEffect(effect, operand)) {
     (operand as Promise<TEffect>).then(
-      (value) => effect.resolve && store.dispatch(effect.resolve(value)),
-      (err) => effect.reject && store.dispatch(effect.reject(err))
+      (value) => effect.complete && store.dispatch(effect.complete(value)),
+      (err) => effect.error && store.dispatch(effect.error(err))
     );
   } else if (isUnsubscriptionEffect(effect, operand)) {
     handleUnsubscribe(operand as UnsubscribeOperation, effect, runtime, store);
+  } else {
+    if (effect.complete) {
+      store.dispatch(effect.complete());
+    }
   }
 }
 

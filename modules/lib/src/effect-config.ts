@@ -1,4 +1,4 @@
-import { ObservableEffect, PromiseEffect, UnsubscriptionEffect } from './effect';
+import {ObservableEffect, PromiseEffect, SynchronousEffect, UnsubscriptionEffect} from './effect';
 
 type EffectExtras = {
   type: string;
@@ -7,6 +7,7 @@ type EffectExtras = {
 export type EffectConfig<T> = (
   | ObservableEffect<T>
   | PromiseEffect<T>
+  | SynchronousEffect<T>
   | UnsubscriptionEffect<T>
 ) &
   Partial<EffectExtras>;

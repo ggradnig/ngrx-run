@@ -32,8 +32,6 @@ export function addEffectDescriptions<TState, TEffect>(state: TState, effects: E
     subscribeAction: hasSubscribeAction(effect)
       ? effect.subscribe(0 as SubscriptionToken).type
       : undefined,
-    resolveAction: hasResolveAction(effect) ? effect.resolve(proxy).type : undefined,
-    rejectAction: hasRejectAction(effect) ? effect.reject(proxy).type : undefined,
     unsubscribeAction: hasUnsubscribeAction(effect)
       ? effect.unsubscribe(0 as CancellationToken).type
       : undefined
@@ -63,18 +61,6 @@ function hasSubscribeAction<T, E extends EffectConfig<T>>(
   effect: E
 ): effect is E & { subscribe: NonNullable<ObservableEffect<T>['subscribe']> } {
   return (effect as ObservableEffect<T>).subscribe !== undefined;
-}
-
-function hasResolveAction<T, E extends EffectConfig<T>>(
-  effect: E
-): effect is E & { resolve: NonNullable<PromiseEffect<T>['resolve']> } {
-  return (effect as PromiseEffect<T>).resolve !== undefined;
-}
-
-function hasRejectAction<T, E extends EffectConfig<T>>(
-  effect: E
-): effect is E & { reject: NonNullable<PromiseEffect<T>['reject']> } {
-  return (effect as PromiseEffect<T>).reject !== undefined;
 }
 
 function hasUnsubscribeAction<T, E extends EffectConfig<T>>(

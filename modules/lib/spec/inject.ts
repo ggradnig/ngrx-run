@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Observable, of} from 'rxjs';
-import {ActionsOf, createReducerEffect, StateWithEffects, run} from '../public_api';
+import {ActionsOf, createEffect, StateWithEffects, run} from '../public_api';
 import {createAction, props} from '@ngrx/store';
 
 @Injectable({providedIn: 'root'})
@@ -10,7 +10,7 @@ export class TestService {
   }
 }
 
-const effect = createReducerEffect<{ state: number, inc: number }>((params) => ({
+const effect = createEffect((params: { state: number, inc: number }) => ({
   operation: (inject) => inject(TestService).performSideEffect(),
   next: () => Actions.next( {inc: params.inc})
 }));
