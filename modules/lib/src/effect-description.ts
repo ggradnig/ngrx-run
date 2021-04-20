@@ -7,8 +7,6 @@ interface EffectDescription {
   nextAction?: string;
   errorAction?: string;
   completeAction?: string;
-  resolveAction?: string;
-  rejectAction?: string;
   subscribeAction?: string;
   unsubscribeAction?: string;
 }

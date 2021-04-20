@@ -88,7 +88,7 @@ The following example shows how to use effect creators to declare effects:
 ```ts
 import { createEffect } from 'ngrx-run';
 
-const fetchBlogPosts = createEffect<State, Action>((params) => ({
+const fetchBlogPosts = createEffect((params) => ({
   type: '[Blog] Fetch blog posts',
   operation: () => fetch(`${apiUrl}/blog/posts`),
   resolve: (blogPosts) => blogPostsFetched(blogPosts),

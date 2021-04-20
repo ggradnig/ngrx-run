@@ -52,10 +52,10 @@ function handleStateWithEffect<TEffect>(effect: EffectConfig<TEffect>, runtime: 
       try {
         store.dispatch(effect.error(err));
       } catch (innerError) {
-        console.error(`Unhandled error while creating error action for effect "${effect.type}"`, innerError);
+        console.error(`Unhandled error occurred when creating error action for effect "${effect.type}"`, innerError);
       }
     } else {
-      console.error(`Unhandled error while creating operation for effect "${effect.type}"`, err);
+      console.error(`Unhandled error occurred when creating operation for effect "${effect.type}"`, err);
     }
   }
 
