@@ -1,10 +1,16 @@
 /* Reducer */
 
-import {unsubscribe, run} from '../src/functions';
 import {interval} from 'rxjs';
-import {StateWithEffects} from '../public_api';
+import {effect, run, StateWithEffects, SubscriptionToken, unsubscribe} from '../public_api';
 import {mapTo} from 'rxjs/operators';
-import {SubscriptionToken} from '../src/effect';
+
+const Effects = {
+  interval: effect({
+    type: 'Interval',
+    // Note: we need this object to test effect description for complex objects
+    call: () => interval(1000).pipe(mapTo({a: {b: {c: 1}}}))
+  })
+};
 
 export function reducer(
   state: State = {counter: 0, type: States.unsubscribed},
@@ -12,22 +18,28 @@ export function reducer(
 ): StateWithEffects<State> {
   switch (action.type) {
     case Actions.subscribe:
-      return run(state, {
-        type: 'Interval',
-        // Note: we need this object to test effect description for complex objects
-        operation: () => interval(1000).pipe(mapTo({a: {b: {c: 1}}})),
-        next: (val: { a: { b: { c: number } } }) => new IncrementAction(val.a.b.c),
-        subscribe: (token) => new SubscribedAction({token})
-      });
+      return [
+        state,
+        run(Effects.interval(), {
+          next: (val: { a: { b: { c: number } } }) => new IncrementAction(val.a.b.c),
+          subscribed: (token) => new SubscribedAction({token})
+        })
+      ];
     case Actions.subscribed:
-      return {...state, type: States.subscribed, subscriptionToken: action.payload.token};
+      return {
+        ...state,
+        type: States.subscribed,
+        subscriptionToken: action.payload.token
+      };
     case Actions.unsubscribe:
       switch (state.type) {
         case States.subscribed:
-          return run(state, {
-            operation: () => unsubscribe(state.subscriptionToken),
-            unsubscribe: () => new UnsubscribedAction()
-          });
+          return [
+            state,
+            run(unsubscribe(state.subscriptionToken), {
+              complete: () => new UnsubscribedAction()
+            })
+          ];
         case States.unsubscribed:
           return state;
       }
@@ -73,7 +85,12 @@ export class UnsubscribedAction {
   readonly type = Actions.unsubscribed;
 }
 
-export type Action = SubscribeAction | SubscribedAction | IncrementAction | UnsubscribeAction | UnsubscribedAction;
+export type Action =
+  | SubscribeAction
+  | SubscribedAction
+  | IncrementAction
+  | UnsubscribeAction
+  | UnsubscribedAction;
 
 export enum States {
   unsubscribed = 'Unsubscribed',

@@ -13,14 +13,20 @@ Return side-effects as data from your NgRx reducers
 ### Example
 
 ```ts
+const fetchBlogPosts = effect({
+  type: '[Blog] Fetch blog posts',
+  call: () => fetch(`${apiUrl}/blog/posts`)
+});
+
 export function reducer(state: State, action: Action) {
   switch (action.type) {
     case ActionTypes.loadBlogPosts:
-      return run(state, {
-        type: '[Blog] Fetch blog posts',
-        operation: () => fetch(`${apiUrl}/blog/posts`),
-        resolve: (blogPosts) => blogPostsFetched(blogPosts)
-      });
+      return [
+        state,
+        run(fetchBlogPosts, {
+          complete: (blogPosts) => blogPostsFetched(blogPosts)
+        })
+      ];
     case ActionTypes.blogPostsFetched:
       return { ...state, blogPosts: action.blogPosts };
   }
@@ -48,11 +54,10 @@ an (Observable) stream instead of a synchronous function. In addition, the split
 more difficult to understand at a glance what exactly is going on with the application state when an action is
 dispatched.
 
-The **ngrx-run** library simplifies effect handling, by treating effects like any other data structure that
-is returned by the reducer. To run a side effect, you just return an **effect description** together with the new state.
-The runtime will take care of running the effect and calls your action creators when events are emitted. By treating
-effects in this way, they become part of the `action -> reducer -> state` loop and work without external configuration
-like `@Effect`.
+The **ngrx-run** library simplifies effect handling, by treating effects like any other data structure that is returned
+by the reducer. To run a side effect, you just return an **effect description** together with the new state. The runtime
+will take care of running the effect and calls your action creators when events are emitted. By treating effects in this
+way, they become part of the `action -> reducer -> state` loop and work without external configuration like `@Effect`.
 
 Using this library, you create more meaningful reducers, and your code becomes easier to follow. On top of that, you
 create concise and valuable tests that guarantee the correctness of complete use cases. See more about that in
@@ -76,65 +81,47 @@ returned by reducers. Effects are run **right after** the new state was internal
 Effects consist of four parts:
 
 - **type**: An optional string that describes what happens in the side effect (used to help you debugging)
-- **operation**: An asynchronous operation (Promise or Observable) that runs as a result of your reducer
+- **operation**: An operation (Promise, Observable or synchronous) that runs as a result of your reducer
 - **event handlers**: Action creator functions that react to events of the asynchronous operation
-- **subscription handlers**: Optional functions that react to subscribing / unsubscribing from Observables
-
-You can declare effects either by inlining them in your reducer or by using effect creators. With effect creators, you
-can use `expect().toHaveEffect()` to test if actions produce the expected effect.
+- **subscription handlers**: Optional action creator that reacts to subscribing to Observables
 
 The following example shows how to use effect creators to declare effects:
 
 ```ts
-import { createEffect } from 'ngrx-run';
+import { HttpClient } from '@angular/common/http';
 
-const fetchBlogPosts = createEffect((params) => ({
-  type: '[Blog] Fetch blog posts',
-  operation: () => fetch(`${apiUrl}/blog/posts`),
-  resolve: (blogPosts) => blogPostsFetched(blogPosts),
-  reject: (error) => blogPostsFetchError(error)
-}));
+const Effects = {
+  fetchBlogPosts: effect({
+    type: '[Blog] Fetch blog posts',
+    call: (apiUrl: string, httpClient) => httpClient.get(`${apiUrl}/blog/posts`),
+    using: [HttpClient]
+  })
+};
 ```
+
+The first parameter in the `call` function is used to provide additional data from state and action. The remaining
+parameters can be used to provide injectables from Angular's DI context. Make sure to declare the required injectables
+in the `using` property. Note, that we currently only support globally-scoped injectables.
 
 ### Using effects
 
-Use `run` as the return statement of your reducer to return side-effects. In this example, blog posts are only
-loaded for logged-in users:
+Instead of returning only the state, return an array / tuple with two elements. The first element is the new state and
+the second property is the effect. Use `run` to join together the effect- and the handler functions.
 
 ```ts
-import { StateWithEffects, run } from 'ngrx-run';
+import { run, StateWithEffects } from 'ngrx-run';
 
 export function reducer(state: State, action: Action): StateWithEffects<State> {
   switch (action.type) {
     case ActionTypes.loadBlogPosts:
-      return state.loggedIn ? run(state, fetchBlogPosts(action)) : state;
-    case ActionTypes.blogPostsFetched:
-      return { ...state, blogPosts: action.blogPosts };
-    case ActionTypes.blogPostsFetchError:
-      return { ...state, error: action.error };
-  }
-}
-```
-
-In the example, the effect-creator `fetchBlogPosts` is called with the `params` argument. This is only necessary when
-the effect creator needs additional data. Otherwise you just call it with an empty argument list: `fetchBlogPosts()`.
-
-The same version with an inlined effect looks like this:
-
-```ts
-import { StateWithEffects, run } from 'ngrx-run';
-
-export function reducer(state: State, action: Action): StateWithEffects<State> {
-  switch (action.type) {
-    case ActionTypes.loadBlogPosts:
-      return !state.loggedIn
-        ? state
-        : run(state, {
-            type: '[Blog] Fetch blog posts',
-            operation: () => fetch(`${apiUrl}/blog/posts`),
-            resolve: (blogPosts) => blogPostsFetched(blogPosts),
-            reject: (error) => blogPostsFetchError(error)
-          });
+      if (!state.loggedIn) return state;
+      return [
+        state,
+        run(Effects.fetchBlogPosts(action), {
+          next: (blogPosts) => blogPostsFetches(blogPosts),
+          error: (err = blogPostsFetchError(err))
+        })
+      ];
     case ActionTypes.blogPostsFetched:
       return { ...state, blogPosts: action.blogPosts };
     case ActionTypes.blogPostsFetchError:
@@ -145,19 +132,26 @@ export function reducer(state: State, action: Action): StateWithEffects<State> {
 
 ### Observables and Subscriptions
 
-You might have use-cases where you need an Observable side-effect. For example, a WebSocket stream that continuously
-emits data. Instead of defining `resolve` and `reject` as event handlers, you define `next`, `error` and `complete`.
+You might have use-cases where you have a side-effect that returns an Observable stream . For example, a WebSocket
+stream that continuously emits data.
 
-The runtime automatically subscribes to the Observable. Afterwards, the `subscribe` action creator function declared in
+The runtime automatically subscribes to the Observable. Afterwards, the `subscribed` action creator function declared in
 the effect is called with a `SubscriptionToken`. This token should be stored in the state and can later on be used with
-the pre-defined `unsubscribe` function to unsubscribe from the Observable.
+the pre-defined `unsubscribe` effect to unsubscribe from the Observable.
 
-After unsubscribing successfully, the optional `unsubscribe` action creator function declared in the effect is called.
+After unsubscribing successfully, the `complete` action creator function declared in the effect is called.
 
 Here is a complete example with RxJS' WebSocket subject:
 
 ```ts
-import { run, unsubscribe, StateWithEffects } from 'ngrx-run';
+import { run, StateWithEffects, unsubscribe } from 'ngrx-run';
+
+const Effects = {
+  subscribeToBlogPosts: effect({
+    type: '[Blog] Subscribe to blog posts stream',
+    call: () => webSocket(`${wsUrl}/blog/posts`)
+  })
+};
 
 export function reducer(
   state: State = { blogPosts: [], type: 'unsubscribed' },
@@ -165,19 +159,23 @@ export function reducer(
 ): StateWithEffects<State> {
   switch (action.type) {
     case Actions.subscribe:
-      return run(state, {
-        operation: () => webSocket(`${wsUrl}/blog/posts`),
-        next: (blogPosts) => blogPostsUpdated(blogPosts),
-        error: (blogPosts) => blogPostUpdateError(blogPosts),
-        subscribe: (token) => subscribed(token)
-      });
+      return [
+        state,
+        run(Effects.subscribeToBlogPosts(), {
+          next: (blogPosts) => blogPostsUpdated(blogPosts),
+          error: (blogPosts) => blogPostUpdateError(blogPosts),
+          subscribed: (token) => subscribed(token)
+        })
+      ];
     case Actions.subscribed:
       return { ...state, type: 'subscribed', subscriptionToken: action.token };
     case Actions.unsubscribe:
-      return run(state, {
-        operation: () => unsubscribe(state.subscriptionToken),
-        unsubscribe: () => unsubscribed()
-      });
+      return [
+        state,
+        run(unsubscribe(state.subscriptionToken), {
+          complete: () => unsubscribed()
+        })
+      ];
       break;
     case Actions.unsubscribed:
       return { counter: state.counter, type: 'unsubscribed' };
@@ -193,12 +191,12 @@ export function reducer(
 
 Testing is a major aspect of this library, as `@Effect`-based unit tests are often not able to make guarantees for
 complete use-cases. For example, you might want to test that the user logs in, then makes changes to their account
-settings and retrieves correct data depending on the account settings. This can be quite difficult to setup and maintain
-when the business logic is scattered around many classes and files.
+settings and retrieves correct data depending on the account settings. This can be quite difficult to set up and
+maintain when the business logic is scattered around many classes and files.
 
-Luckily with **ngrx-run** most of the test-relevant code of a use-case will live in one reducer. This makes
-it easy to write readable and concise tests that guarantee that this use-case works correctly. These tests are able to
-bring much more value to your code than traditional class-scoped unit tests.
+Luckily with **ngrx-run** most of the test-relevant code of a use-case will live in one reducer. This makes it easy to
+write readable and concise tests that guarantee that this use-case works correctly. These tests are able to bring much
+more value to your code than traditional class-scoped unit tests.
 
 The following example shows how you can write unit tests for use-cases using the `reduceWithEffects` helper function:
 
@@ -251,10 +249,10 @@ this representation is just for convenience.
 
 ## Utilities
 
-**ngrx-run** will likely increase the amount of code in your reducers, because action handlers will deal
-with larger chunks of application state. This is actually good, because you'll make more deliberate decisions on what
-should happen in response to events. Because you'll likely write more code, it is important to make it as concise as
-possible. The library exports some utilities to help you do that.
+**ngrx-run** will likely increase the amount of code in your reducers, because action handlers will deal with larger
+chunks of application state. This is actually good, because you'll make more deliberate decisions on what should happen
+in response to events. Because you'll likely write more code, it is important to make it as concise as possible. The
+library exports some utilities to help you do that.
 
 ### ActionsOf
 

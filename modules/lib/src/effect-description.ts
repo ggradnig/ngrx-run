@@ -1,4 +1,4 @@
-import {CancellationToken, ObservableEffect, PromiseEffect, SubscriptionToken, UnsubscriptionEffect} from './effect';
+import {ObservableEffect, SubscriptionToken} from './effect';
 import {EffectConfig} from './effect-config';
 
 interface EffectDescription {
@@ -20,49 +20,43 @@ const handler = {
 const target = {};
 const proxy = new Proxy(target, handler);
 
-export function addEffectDescriptions<TState, TEffect>(state: TState, effects: EffectConfig<any>[]): any {
-  const effectDescriptions: EffectDescription[] = effects.map((effect) => ({
+export function addEffectDescriptions<TState, TEffect>(
+  state: TState,
+  effect: EffectConfig<any, any>
+): any {
+  const effectDescription: EffectDescription = {
     type: effect.type,
     params: effect.params,
     nextAction: hasNextAction(effect) ? effect.next(proxy).type : undefined,
     errorAction: hasErrorAction(effect) ? effect.error(proxy).type : undefined,
     completeAction: hasCompleteAction(effect) ? effect.complete().type : undefined,
     subscribeAction: hasSubscribeAction(effect)
-      ? effect.subscribe(0 as SubscriptionToken).type
-      : undefined,
-    unsubscribeAction: hasUnsubscribeAction(effect)
-      ? effect.unsubscribe(0 as CancellationToken).type
+      ? effect.subscribed(0 as SubscriptionToken).type
       : undefined
-  }));
-  return Object.assign(state, {__effects__: effectDescriptions});
+  };
+  return Object.assign(state, {__effect: effectDescription});
 }
 
-function hasNextAction<T, E extends EffectConfig<T>>(
+function hasNextAction<T, E extends EffectConfig<any, any>>(
   effect: E
-): effect is E & { next: NonNullable<ObservableEffect<T>['next']> } {
-  return (effect as ObservableEffect<T>).next !== undefined;
+): effect is E & { next: NonNullable<ObservableEffect<any, any>['next']> } {
+  return (effect as ObservableEffect<any, any>).next !== undefined;
 }
 
-function hasErrorAction<T, E extends EffectConfig<T>>(
+function hasErrorAction<T, E extends EffectConfig<any, any>>(
   effect: E
-): effect is E & { error: NonNullable<ObservableEffect<T>['error']> } {
-  return (effect as ObservableEffect<T>).error !== undefined;
+): effect is E & { error: NonNullable<ObservableEffect<any, any>['error']> } {
+  return (effect as ObservableEffect<any, any>).error !== undefined;
 }
 
-function hasCompleteAction<T, E extends EffectConfig<T>>(
+function hasCompleteAction<T, E extends EffectConfig<any, any>>(
   effect: E
-): effect is E & { complete: NonNullable<ObservableEffect<T>['complete']> } {
-  return (effect as ObservableEffect<T>).complete !== undefined;
+): effect is E & { complete: NonNullable<ObservableEffect<any, any>['complete']> } {
+  return (effect as ObservableEffect<any, any>).complete !== undefined;
 }
 
-function hasSubscribeAction<T, E extends EffectConfig<T>>(
+function hasSubscribeAction<T, E extends EffectConfig<any, any>>(
   effect: E
-): effect is E & { subscribe: NonNullable<ObservableEffect<T>['subscribe']> } {
-  return (effect as ObservableEffect<T>).subscribe !== undefined;
-}
-
-function hasUnsubscribeAction<T, E extends EffectConfig<T>>(
-  effect: E
-): effect is E & { unsubscribe: NonNullable<UnsubscriptionEffect<T>['unsubscribe']> } {
-  return (effect as UnsubscriptionEffect<T>).unsubscribe !== undefined;
+): effect is E & { subscribed: NonNullable<ObservableEffect<any, any>['subscribed']> } {
+  return (effect as ObservableEffect<any, any>).subscribed !== undefined;
 }

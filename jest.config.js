@@ -10,7 +10,8 @@ module.exports = {
   moduleDirectories: ['node_modules'],
   roots: ['<rootDir>/modules'],
   moduleNameMapper: {
-    'ngrx-run': '<rootDir>/modules/lib/public_api.ts'
+    'ngrx-run': '<rootDir>/modules/lib/public_api.ts',
+    'ngrx-run/testing': '<rootDir>/modules/testing/src/public_api.ts'
   },
   modulePaths: ['<rootDir>/dist']
 };

@@ -23,6 +23,10 @@
       "ngrx-run": [
         "dist/ngrx-run/ngrx-run",
         "dist/ngrx-run"
+      ],
+      "ngrx-run/testing": [
+        "dist/ngrx-run/testing/testing",
+        "dist/ngrx-run/testing"
       ]
     }
   },

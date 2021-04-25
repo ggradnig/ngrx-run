@@ -31,13 +31,13 @@ export const testing = {};
 declare global {
   namespace jest {
     interface Matchers<R> {
-      toHaveEffect(expected: EffectConfig<any>): R;
+      toHaveEffect(expected: EffectConfig<any, any>): R;
     }
   }
 }
 
 expect.extend({
-  toHaveEffect(received: StateWithEffects<any>, expected: EffectConfig<any>): any {
+  toHaveEffect(received: StateWithEffects<any>, expected: EffectConfig<any, any>): any {
     const pass = received.effects.includes(expected);
     if (pass) {
       return {
