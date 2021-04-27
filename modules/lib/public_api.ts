@@ -1,7 +1,7 @@
 /*
  * Public API Surface of ngrx-run
  */
-export {effect} from './src/create-effect';
+export {createEffect} from './src/create-effect';
 export {unsubscribe} from './src/unsubscribe';
 export {run} from './src/run';
 export {ReducerResult as StateWithEffects, ActionReducer} from './src/reducer';

@@ -1,9 +1,9 @@
-import {Injectable} from '@angular/core';
-import {Observable, of} from 'rxjs';
-import {ActionReducer, ActionsOf, createEffect, run} from 'ngrx-run';
-import {createAction, props} from '@ngrx/store';
+import { Injectable } from '@angular/core';
+import { Observable, of } from 'rxjs';
+import { createAction, props } from '@ngrx/store';
+import { ActionReducer, ActionsOf, createEffect, run } from '../public_api';
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class TestService {
   increment(inc: number): Observable<number> {
     return of(inc);
@@ -12,7 +12,7 @@ export class TestService {
 
 const Effects = {
   increase: createEffect('Increment', {
-    call: (testService) => (inc: number) => testService.increment(inc),
+    call:  (testService) => (inc: number) => testService.increment(inc),
     using: [TestService]
   })
 };
@@ -25,7 +25,7 @@ export const reducer: ActionReducer<1 | 2 | 3> = (
     case Actions.init.type:
       return [
         state,
-        run(Effects.increase(action.inc), {next: (inc) => Actions.next({inc})})
+        run(Effects.increase(action.inc), { next: (inc) => Actions.next({ inc }) })
       ];
     case Actions.next.type:
       return 2 as const;

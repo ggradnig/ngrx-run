@@ -13,12 +13,11 @@ Return side-effects as data from your NgRx reducers
 ### Example
 
 ```ts
-const fetchBlogPosts = effect({
-  type: '[Blog] Fetch blog posts',
+const fetchBlogPosts = createEffect('[Blog] Fetch blog posts', {
   call: () => fetch(`${apiUrl}/blog/posts`)
 });
 
-export function reducer(state: State, action: Action) {
+export function reducer(state, action) {
   switch (action.type) {
     case ActionTypes.loadBlogPosts:
       return [
@@ -91,9 +90,8 @@ The following example shows how to use effect creators to declare effects:
 import { HttpClient } from '@angular/common/http';
 
 const Effects = {
-  fetchBlogPosts: effect({
-    type: '[Blog] Fetch blog posts',
-    call: (apiUrl: string, httpClient) => httpClient.get(`${apiUrl}/blog/posts`),
+  fetchBlogPosts: createEffect('[Blog] Fetch blog posts', {
+    call: (httpClient) => (apiUrl: string) => httpClient.get(`${apiUrl}/blog/posts`),
     using: [HttpClient]
   })
 };
@@ -111,7 +109,7 @@ the second property is the effect. Use `run` to join together the effect- and th
 ```ts
 import { run, StateWithEffects } from 'ngrx-run';
 
-export function reducer(state: State, action: Action): StateWithEffects<State> {
+export function reducer(state: State, action): StateWithEffects<State> {
   switch (action.type) {
     case ActionTypes.loadBlogPosts:
       if (!state.loggedIn) return state;
@@ -147,15 +145,14 @@ Here is a complete example with RxJS' WebSocket subject:
 import { run, StateWithEffects, unsubscribe } from 'ngrx-run';
 
 const Effects = {
-  subscribeToBlogPosts: effect({
-    type: '[Blog] Subscribe to blog posts stream',
+  subscribeToBlogPosts: createEffect('[Blog] Subscribe to blog posts stream', {
     call: () => webSocket(`${wsUrl}/blog/posts`)
   })
 };
 
 export function reducer(
-  state: State = { blogPosts: [], type: 'unsubscribed' },
-  action: Action
+  state = { blogPosts: [], type: 'unsubscribed' },
+  action
 ): StateWithEffects<State> {
   switch (action.type) {
     case Actions.subscribe:
@@ -275,7 +272,7 @@ const Actions = {
   )
 };
 
-export function reducer(state: State, action: ActionsOf<typeof Actions>) {
+export function reducer(state, action: ActionsOf<typeof Actions>) {
   switch (action.type) {
     case Actions.login.type:
     // ...

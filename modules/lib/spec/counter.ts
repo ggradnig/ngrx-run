@@ -1,12 +1,11 @@
 /* Reducer */
 
 import {interval} from 'rxjs';
-import {effect, run, StateWithEffects, SubscriptionToken, unsubscribe} from '../public_api';
+import {createEffect, run, StateWithEffects, SubscriptionToken, unsubscribe} from '../public_api';
 import {mapTo} from 'rxjs/operators';
 
 const Effects = {
-  interval: effect({
-    type: 'Interval',
+  interval: createEffect('Interval', {
     // Note: we need this object to test effect description for complex objects
     call: () => interval(1000).pipe(mapTo({a: {b: {c: 1}}}))
   })

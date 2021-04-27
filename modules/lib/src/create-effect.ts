@@ -1,13 +1,6 @@
-import { Observable } from 'rxjs';
-import { InjectionToken, Type } from '@angular/core';
-import {
-  Dependencies,
-  ImmediateEffectDefinition,
-  Instances,
-  IsEffect,
-  ObservableEffectDefinition,
-  PromiseEffectDefinition
-} from './effect';
+import {Observable} from 'rxjs';
+import {InjectionToken, Type} from '@angular/core';
+import {Dependencies, ImmediateEffectDefinition, Instances, IsEffect, ObservableEffectDefinition, PromiseEffectDefinition} from './effect';
 
 type DepExtras<T> = {
   [P in keyof T]?: DepExtras<T[P]>;
@@ -17,64 +10,115 @@ export function inject<T>(token: InjectionToken<any>): Type<T> {
   return (token as unknown) as Type<T>;
 }
 
-type HasType = { type?: string };
-
 /* Observable */
-export function effect<TDeps extends Dependencies, TResult>(
-  config: HasType & {
-    call: (params: unknown, ...dep: Instances<TDeps>) => Observable<TResult>;
-    using?: readonly [...TDeps];
-  }
-): () => ObservableEffectDefinition<TDeps, TResult>;
-export function effect<TParams, TDeps extends Dependencies, TResult>(
-  config: HasType & {
-    call: (params: TParams, ...dep: Instances<TDeps>) => Observable<TResult>;
-    using?: readonly [...TDeps];
+export function createEffect<TParams, TDeps extends Dependencies, TResult>(
+  type: string,
+  config: {
+    call: (...dep: Instances<TDeps>) => (params: TParams) => Observable<TResult>;
+    using: readonly [...TDeps];
   }
 ): (params: TParams) => ObservableEffectDefinition<TDeps, TResult>;
+export function createEffect<TDeps extends Dependencies, TResult>(
+  type: string,
+  config: {
+    call: (...dep: Instances<TDeps>) => Observable<TResult>;
+    using: readonly [...TDeps];
+  }
+): () => ObservableEffectDefinition<TDeps, TResult>;
+export function createEffect<TParams, TResult>(
+  type: string,
+  config: {
+    call: (params: TParams) => Observable<TResult>;
+  }
+): () => ObservableEffectDefinition<[], TResult>;
 
 /* Promise */
-export function effect<TDeps extends Dependencies, TResult>(
-  config: HasType & {
-    call: (params: unknown, ...dep: Instances<TDeps>) => Promise<TResult>;
-    using?: readonly [...TDeps];
-  }
-): () => PromiseEffectDefinition<TDeps, TResult>;
-export function effect<TParams, TDeps extends Dependencies, TResult>(
-  config: HasType & {
-    call: (params: TParams, ...dep: Instances<TDeps>) => Promise<TResult>;
+export function createEffect<TParams, TDeps extends Dependencies, TResult>(
+  type: string,
+  config: {
+    call: (...dep: Instances<TDeps>) => (params: TParams) => Promise<TResult>;
     using?: readonly [...TDeps];
   }
 ): (params: TParams) => PromiseEffectDefinition<TDeps, TResult>;
-
-/* Immediate */
-export function effect<TDeps extends Dependencies>(
-  config: HasType & {
-    call: (params: unknown, ...dep: Instances<TDeps>) => void;
+export function createEffect<TDeps extends Dependencies, TResult>(
+  type: string,
+  config: {
+    call: (...dep: Instances<TDeps>) => Promise<TResult>;
     using?: readonly [...TDeps];
   }
-): () => ImmediateEffectDefinition<TDeps>;
-export function effect<TParams, TDeps extends any[]>(
-  config: HasType & {
-    call: (params: TParams, ...dep: Instances<TDeps>) => void;
+): () => PromiseEffectDefinition<TDeps, TResult>;
+export function createEffect<TParams, TResult>(
+  type: string,
+  config: {
+    call: (params: TParams) => Promise<TResult>;
+  }
+): () => PromiseEffectDefinition<[], TResult>;
+
+/* Immediate */
+export function createEffect<TParams, TDeps extends Dependencies>(
+  type: string,
+  config: {
+    call: (...dep: Instances<TDeps>) => (params: TParams) => void;
     using?: readonly [...TDeps];
   }
 ): (params: TParams) => ImmediateEffectDefinition<TDeps>;
-
-/* General */
-export function effect<TParams, TDeps extends any[], TResult>(
-  config: HasType & {
-    call:
-      | ((params: TParams, ...dep: Instances<TDeps>) => any)
-      | ((params: TParams) => any);
+export function createEffect<TDeps extends Dependencies>(
+  type: string,
+  config: {
+    call: (...dep: Instances<TDeps>) => void;
     using?: readonly [...TDeps];
   }
-): (params: TParams) => IsEffect {
-  return (params) => ({
-    __isEffect: true,
-    type: config.type,
-    call: (...dep: Instances<TDeps>) => config.call(params, ...dep),
-    using: config.using,
-    params
-  });
+): () => ImmediateEffectDefinition<TDeps>;
+export function createEffect<TParams>(
+  type: string,
+  config: {
+    call: (params: TParams) => void;
+  }
+): () => ImmediateEffectDefinition<[]>;
+
+/* General */
+export function createEffect<TParams, TDeps extends any[], TResult>(
+  type: string,
+  config: {
+    call:
+      | ((...dep: Instances<TDeps>) => (params?: TParams) => any)
+      | ((params?: TParams) => any)
+      | ((...dep: Instances<TDeps>) => any);
+    using?: readonly [...TDeps];
+  }
+): (params?: TParams) => IsEffect {
+  // tslint:disable-next-line:only-arrow-functions typedef
+  return function(params?: TParams) {
+    const hasParams = arguments.length > 0;
+    const hasDependencies = config.using;
+    if (hasParams && hasDependencies) {
+      return {
+        __isEffect: true,
+        type,
+        call: (...deps: Instances<TDeps>) =>
+          (config.call as (...dep: Instances<TDeps>) => (params?: TParams) => any)(
+            ...deps
+          )(params),
+        using: config.using,
+        params
+      };
+    } else if (!hasParams) {
+      return {
+        __isEffect: true,
+        type,
+        call: (...deps: Instances<TDeps>) =>
+          (config.call as (...dep: Instances<TDeps>) => any)(...deps),
+        using: config.using,
+        params
+      };
+    } else {
+      return {
+        __isEffect: true,
+        type,
+        call: () => (config.call as (params: TParams) => any)((params as TParams)),
+        using: config.using,
+        params
+      };
+    }
+  };
 }

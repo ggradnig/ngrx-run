@@ -1,7 +1,7 @@
 import { Store } from '@ngrx/store';
 import { TestBed } from '@angular/core/testing';
 import { EffectStoreModule } from '../src/module';
-import { Actions, reducer } from '../../testing/spec/inject';
+import { Actions, reducer } from './inject';
 import { testStoreValue } from './util';
 
 describe('Inject', () => {
