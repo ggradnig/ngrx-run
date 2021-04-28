@@ -1,5 +1,5 @@
-import {ObservableEffect, SubscriptionToken} from './effect';
-import {EffectConfig} from './effect-config';
+import { ObservableEffect, SubscriptionToken } from './effect';
+import { EffectConfig } from './effect-config';
 
 interface EffectDescription {
   type?: string;
@@ -22,9 +22,9 @@ const proxy = new Proxy(target, handler);
 
 export function addEffectDescriptions<TState, TEffect>(
   state: TState,
-  effect: EffectConfig<any, any>
+  effects: EffectConfig<any, any>[]
 ): any {
-  const effectDescription: EffectDescription = {
+  const effectDescriptions: EffectDescription[] = effects.map((effect) => ({
     type: effect.type,
     params: effect.params,
     nextAction: hasNextAction(effect) ? effect.next(proxy).type : undefined,
@@ -33,8 +33,8 @@ export function addEffectDescriptions<TState, TEffect>(
     subscribeAction: hasSubscribeAction(effect)
       ? effect.subscribed(0 as SubscriptionToken).type
       : undefined
-  };
-  return Object.assign(state, {__effect: effectDescription});
+  }));
+  return Object.assign(state, { __effects: effectDescriptions });
 }
 
 function hasNextAction<T, E extends EffectConfig<any, any>>(

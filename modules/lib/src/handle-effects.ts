@@ -37,9 +37,9 @@ export function handleEffects<T>(
 
   function handleSliceEffects<S>(slicedState: ReducerResult<S>): S {
     if (isStateWithEffects(slicedState)) {
-      const [state, effect] = slicedState;
-      handleStateWithEffect(effect, runtime, injector.get(Store), injector);
-      return addEffectDescriptions(state, effect);
+      const [state, ...effects] = slicedState;
+      effects.map(effect => handleStateWithEffect(effect, runtime, injector.get(Store), injector));
+      return addEffectDescriptions(state, effects);
     } else {
       return slicedState as S;
     }

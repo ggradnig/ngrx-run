@@ -25,12 +25,12 @@ describe('Effect description', () => {
     setup();
     store.dispatch(new SubscribeAction());
     await testStoreValueAsync(
-      {
+      [{
         type: 'Interval',
         nextAction: new IncrementAction().type,
         subscribeAction: new SubscribedAction({ token: 1 as SubscriptionToken }).type
-      },
-      (state) => state.__effect
+      }],
+      (state) => state.__effects
     );
   });
 });
