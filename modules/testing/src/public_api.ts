@@ -1,1 +1,1 @@
-export {reduceWithEffects, testing} from './testing';
+export {simulate, testing} from './testing';

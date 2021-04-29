@@ -7,7 +7,7 @@ import {first} from 'rxjs/operators';
 
 type Config = { providers?: Provider[] };
 
-export async function reduceWithEffects<TState>(
+export async function simulate<TState>(
   reducer: ActionReducer<TState>,
   actions: Action[],
   config?: Config

@@ -1,7 +1,7 @@
 {
   "name": "ngrx-run",
   "description": "Return side-effects as data from your NgRx reducers",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "keywords": [
     "ngrx",
     "effects",

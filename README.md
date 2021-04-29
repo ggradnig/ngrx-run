@@ -195,10 +195,10 @@ Luckily with **ngrx-run** most of the test-relevant code of a use-case will live
 write readable and concise tests that guarantee that this use-case works correctly. These tests are able to bring much
 more value to your code than traditional class-scoped unit tests.
 
-The following example shows how you can write unit tests for use-cases using the `reduceWithEffects` helper function:
+The following example shows how you can write unit tests for use-cases using the `simulate` helper function:
 
 ```ts
-import { reduceWithEffects } from 'ngrx-run/testing';
+import { simulate } from 'ngrx-run/testing';
 
 it('should login, change the account settings and load 50 posts', async () => {
   const blogClient = mockProvider(BlogClient, {
@@ -206,7 +206,7 @@ it('should login, change the account settings and load 50 posts', async () => {
   });
 
   expect(
-    await reduceWithEffects(
+    await simulate(
       reducer,
       [login(), changeAccountSettings({ numberOfPosts: 50 }), loadBlogPosts()],
       [blogClient]
