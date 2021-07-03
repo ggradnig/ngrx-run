@@ -25,13 +25,18 @@ export function createEffect<TDeps extends Dependencies, TResult>(
     using: readonly [...TDeps];
   }
 ): () => ObservableEffectDefinition<TDeps, TResult>;
+export function createEffect<TResult>(
+  type: string,
+  config: {
+    call: () => Observable<TResult>;
+  }
+): () => ObservableEffectDefinition<[], TResult>;
 export function createEffect<TParams, TResult>(
   type: string,
   config: {
     call: (params: TParams) => Observable<TResult>;
   }
 ): (params: TParams) => ObservableEffectDefinition<[], TResult>;
-
 /* Promise */
 export function createEffect<TParams, TDeps extends Dependencies, TResult>(
   type: string,
@@ -44,9 +49,15 @@ export function createEffect<TDeps extends Dependencies, TResult>(
   type: string,
   config: {
     call: (...dep: Instances<TDeps>) => Promise<TResult>;
-    using?: readonly [...TDeps];
+    using: readonly [...TDeps];
   }
 ): () => PromiseEffectDefinition<TDeps, TResult>;
+export function createEffect<TResult>(
+  type: string,
+  config: {
+    call: () => Promise<TResult>;
+  }
+): () => PromiseEffectDefinition<[], TResult>;
 export function createEffect<TParams, TResult>(
   type: string,
   config: {
@@ -59,16 +70,22 @@ export function createEffect<TParams, TDeps extends Dependencies>(
   type: string,
   config: {
     call: (...dep: Instances<TDeps>) => (params: TParams) => void;
-    using?: readonly [...TDeps];
+    using: readonly [...TDeps];
   }
 ): (params: TParams) => ImmediateEffectDefinition<TDeps>;
 export function createEffect<TDeps extends Dependencies>(
   type: string,
   config: {
     call: (...dep: Instances<TDeps>) => void;
-    using?: readonly [...TDeps];
+    using: readonly [...TDeps];
   }
 ): () => ImmediateEffectDefinition<TDeps>;
+export function createEffect<TParams>(
+  type: string,
+  config: {
+    call: () => void;
+  }
+): () => ImmediateEffectDefinition<[]>;
 export function createEffect<TParams>(
   type: string,
   config: {
