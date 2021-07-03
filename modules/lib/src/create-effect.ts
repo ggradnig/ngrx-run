@@ -30,7 +30,7 @@ export function createEffect<TParams, TResult>(
   config: {
     call: (params: TParams) => Observable<TResult>;
   }
-): () => ObservableEffectDefinition<[], TResult>;
+): (params: TParams) => ObservableEffectDefinition<[], TResult>;
 
 /* Promise */
 export function createEffect<TParams, TDeps extends Dependencies, TResult>(
@@ -52,7 +52,7 @@ export function createEffect<TParams, TResult>(
   config: {
     call: (params: TParams) => Promise<TResult>;
   }
-): () => PromiseEffectDefinition<[], TResult>;
+): (params: TParams) => PromiseEffectDefinition<[], TResult>;
 
 /* Immediate */
 export function createEffect<TParams, TDeps extends Dependencies>(
@@ -74,7 +74,7 @@ export function createEffect<TParams>(
   config: {
     call: (params: TParams) => void;
   }
-): () => ImmediateEffectDefinition<[]>;
+): (params: TParams) => ImmediateEffectDefinition<[]>;
 
 /* General */
 export function createEffect<TParams, TDeps extends any[], TResult>(
