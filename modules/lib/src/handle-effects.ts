@@ -49,7 +49,7 @@ export function handleEffects<T>(
 function isStateWithEffects(
   state: any | [any, EffectConfig<any, any>]
 ): state is StateWithEffect<any, any, any> {
-  return state[1] && state[1].__isEffect === true;
+  return state && state[1] && state[1].__isEffect === true;
 }
 
 function handleStateWithEffect<TDeps extends Dependencies, TResult>(
