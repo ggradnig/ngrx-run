@@ -27,4 +27,4 @@ export function childReducer<S, K extends keyof S, A extends TypedAction<string>
   };
 }
 
-export type InitializedActionReducer<T, A> = (state: T, action: A) => ReducerResult<T>;
+type InitializedActionReducer<T, A> = (state: T, action: A) => ReducerResult<T>;
