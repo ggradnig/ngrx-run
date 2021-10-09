@@ -121,5 +121,5 @@ export function isUnsubscriptionEffect(
   effect: EffectConfig<any, any>,
   operand: Operand<any>
 ): effect is ImmediateEffect<any> {
-  return (operand as UnsubscribeOperation).__brand === 'Unsubscribe';
+  return (operand as UnsubscribeOperation)?.__brand === 'Unsubscribe';
 }

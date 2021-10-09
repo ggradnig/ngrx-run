@@ -29,10 +29,10 @@ export function childReducer<S, K extends keyof S, A extends Action>(
 type InitializedActionReducer<T, A> = (state: T, action: A) => ReducerResult<T>;
 
 export function tokenized<T, K extends string, P extends object>(
-  actionCreator: ActionCreator<K, (props: P) => P & Action>,
+  actionCreator: ActionCreator<K, (props: P) => P & TypedAction<K>>,
   token: Token<P>
 ): ActionCreator<K, (props: P) => P & TypedAction<K>> & Tokenized<T, P, K> {
-  return Object.assign(actionCreator, { token }) as any;
+  return ((p: P) => Object.assign(actionCreator(p), {token})) as any;
 }
 
 export function hasToken<P>(maybeTokenized: Action, token: Token<P>): maybeTokenized is Action & P {
